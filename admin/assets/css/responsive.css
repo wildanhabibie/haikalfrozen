@@ -1,0 +1,643 @@
+/* Extra small devices (Smart Watches and Small Mobiles)  */
+@media only screen and (max-width: 320px){
+.top-navbar .logo {
+  width: 180px;
+  font-weight: unset;
+  padding: 0 5px;
+}
+
+.top-navbar .menu{
+    width: calc(100% - 180px);
+    padding: 0 5px;
+}
+
+.top-navbar .logo h2{
+  font-size: 12px;
+}
+
+.top-navbar .hamburger {
+  font-size: 20px;
+}
+
+.top-navbar .logout a{
+  font-size: 16px;
+}
+
+.main-part{
+  padding: 80px 15px 80px 90px;
+}
+
+.admin-pagination ul li a {
+  padding: 4px 8px;
+  font-weight: normal;
+  letter-spacing: 1.1px;
+  font-size: 12px;
+}
+
+.admin-add-col form .admin-group input {
+  font-size: 12px;
+  width: 200px;
+}
+
+.admin-add-col form .admin-group textarea {
+  width: 200px;
+  font-size: 12px;
+}
+
+.admin-group select {
+  font-size: 12px;
+}
+
+
+.admin-group-btn button {
+ font-size: 12px;
+}
+
+.admin-group .ui-dropdown {
+  width: 200px;
+  font-size: 12px;
+}
+
+.order-back{
+  font-size: 12px;
+}
+
+.order-title{
+  font-size: 16px;
+}
+
+.order-subtitle{
+font-size: 12px;
+}
+
+.order-group span,
+.order-group h4{
+font-size: 12px;
+}
+
+.order-row:last-child a{
+  font-size: 12px;
+}
+
+.order-row:nth-child(2){
+  flex-direction: column;
+}
+
+.order-row:nth-child(2) .order-col{
+  margin-bottom: 30px;
+  padding: 0 5px;
+}
+
+.order-row:nth-child(3){
+width: 95%;
+display: block;
+margin: 0 5px 0 auto;
+}
+
+.update form .admin-group input {
+  font-size: 12px;
+  width: 200px;
+}
+
+.update form .admin-group textarea {
+  width: 200px;
+  font-size: 12px;
+}
+
+.form-row {
+  width: 95%;
+}
+
+.form-header,
+.form-form
+{
+padding: 8px;
+}
+
+.form-controls label {
+font-size: 12px;
+}
+
+.form-controls input {
+  font-size: 12px;
+}
+
+.form-form button {
+  font-size: 12px;
+}
+
+.attributes-group .attribute a {
+  margin: 0 20px;
+}
+
+.order-row.attributes{
+  display: flex;
+}
+
+.order-row.attributes .attributes-col{
+  margin-bottom: 40px;
+}
+
+.order-row.attributes h2{
+  font-size: 16px;
+}
+
+.order.row.attributes .attributes-col form{
+  width: 95%;
+  display: block;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.order-row.attributes .attributes-col form input{
+  height: 20px;
+  padding: 0px 10px;
+  font-size: 12px;
+}
+
+.order-row.attributes .attributes-col form button{
+  height: 20px;
+  font-size: 12px;
+  padding: 0 15px;
+}
+
+.order-row.attributes .attributes-col p{
+  font-size: 12px;
+}
+
+.order-row.attributes .attributes-col .attributes-groups{
+  width: 95%;
+}
+
+.order-row.attributes .attributes-col .attributes-group span{
+  font-size: 12px;
+}
+
+.order-row.attributes .attributes-col .attribute-group a{
+  font-size: 12px;
+}
+}
+
+
+/* Small devices (Mobiles)  */
+@media only screen and (min-width: 321px) and (max-width: 480px){
+
+    .top-navbar .logo {
+  width: 180px;
+  font-weight: unset;
+  padding: 0 5px;
+}
+
+.top-navbar .logo h2{
+  font-size: 14px;
+}
+
+.top-navbar .menu{
+    width: calc(100% - 180px);
+    padding: 0 5px;
+}
+
+.top-navbar .hamburger {
+  font-size: 22px;
+}
+
+.top-navbar .logout a{
+  font-size: 18px;
+}
+
+.admin-pagination ul li a {
+  padding: 4px 8px;
+  font-weight: normal;
+  letter-spacing: 1.1px;
+  font-size: 12px;
+}
+
+.admin-add-col form .admin-group input {
+  font-size: 14px;
+  width: 220px;
+}
+
+.admin-add-col form .admin-group textarea {
+  width: 220px;
+  font-size: 14px;
+}
+
+.admin-group select {
+  font-size: 14px;
+}
+
+.admin-group-btn button {
+ font-size: 14px;
+}
+
+
+.admin-group .ui-dropdown {
+  width: 220px;
+  font-size: 14px;
+}
+
+.order-back{
+  font-size: 14px;
+}
+
+.order-container{
+padding: 30px 10px;
+}
+
+.order-title{
+  font-size: 18px;
+}
+
+.order-subtitle{
+font-size: 14px;
+}
+
+.order-group span,
+.order-group h4{
+font-size: 12px;
+}
+
+.order-row:last-child a{
+  font-size: 14px;
+}
+
+.order-row:nth-child(2){
+  flex-direction: column;
+}
+
+.order-row:nth-child(2) .order-col{
+  margin-bottom: 30px;
+  padding: 0 5px;
+}
+
+.order-row:nth-child(3){
+width: 95%;
+display: block;
+margin: 0 5px 0 auto;
+}
+
+.update form .admin-group input {
+  font-size: 14px;
+  width: 220px;
+}
+
+.update form .admin-group textarea {
+  width: 220px;
+  font-size: 14px;
+}
+
+.form-row {
+  width: 95%;
+}
+
+.form-header,
+.form-form
+{
+padding: 10px;
+}
+
+.form-controls label {
+font-size: 14px;
+}
+
+.form-controls input {
+  font-size: 14px;
+}
+
+.form-form button {
+  font-size: 14px;
+}
+
+.admin-logout{
+  font-size: 14px;
+}
+
+.order-row.attributes{
+  display: flex;
+}
+
+.order-row.attributes .attributes-col{
+  margin-bottom: 40px;
+}
+
+.order-row.attributes h2{
+  font-size: 18px;
+}
+
+.order-row.attributes .attributes-col form{
+  width: 95%;
+  display: block;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.order-row.attributes .attributes-col form input{
+  height: 25px;
+  padding: 0px 10px;
+  font-size: 14px;
+}
+
+.order-row.attributes .attributes-col form button{
+  height: 20px;
+  font-size: 14px;
+  padding: 0 15px;
+}
+
+.order-row.attributes .attributes-col p{
+  font-size: 14px;
+}
+
+.order-row.attributes .attributes-col .attributes-groups{
+  width: 95%;
+}
+
+.order-row.attributes .attributes-col .attributes-group span{
+  font-size: 14px;
+}
+
+.order-row.attributes .attributes-col .attribute-group a{
+  font-size: 14px;
+}
+
+}
+
+/* Small devices (Tablets)  */
+@media only screen and (min-width: 481px) and (max-width: 600px){
+
+.order-back{
+  font-size: 14px;
+}
+
+.order-row:nth-child(2){
+ flex-direction: column;
+}
+
+.order-row:nth-child(2) .order-col{
+margin-bottom: 30px;
+padding: 0 20px;
+}
+
+.order-row:nth-child(3){ 
+  width: 90%;
+  display: block;
+  margin: 0 20px 0 auto;
+}
+
+.order-row:last-child{
+  margin-top: 60px;
+ display: flex;
+ justify-content: center;
+}
+
+.order-row.attributes{
+  display: flex;
+}
+
+.order.row.attributes .attributes-col{
+  margin-bottom: 40px;
+}
+
+.order-row.attributes h2{
+  font-size: 18px;
+}
+
+.order-row.attributes .attributes-col form{
+  width: 95%;
+  display: block;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.order-row.attributes .attributes-col form input{
+  height: 25px;
+  padding: 0px 10px;
+  font-size: 14px;
+}
+
+.order-row.attributes .attributes-col form button{
+  height: 20px;
+  font-size: 14px;
+  padding: 0 15px;
+}
+
+.order-row.attributes .attributes-col p{
+  font-size: 14px;
+}
+
+.order-row.attributes .attributes-col .attributes-groups{
+  width: 95%;
+}
+
+.order-row.attributes .attributes-col .attributes-group span{
+  font-size: 14px;
+}
+
+.order-row.attributes .attributes-col .attribute-group a{
+  font-size: 14px;
+}
+}
+
+/* Medium devices (Tablets)  */
+@media only screen and (min-width: 601px) and (max-width: 768px){
+
+.order-row:nth-child(2){
+ flex-direction: column;
+}
+
+.order-row:nth-child(2) .order-col{
+margin-bottom: 30px;
+}
+
+.order-row.attributes{
+  display: flex;
+}
+
+.order-row.attributes .attributes-col{
+  margin-bottom: 40px;
+}
+
+.order-row.attributes .attributes-col form{
+  width: 95%;
+  text-align: center;
+}
+
+.order-row.attributes .attributes-col .attributes-groups{
+  width: 95%;
+}
+
+}
+
+/* Large devices (Tablets and Laptop/Desktop)  */
+@media only screen and (min-width: 769px) and (max-width: 1200px){
+.order-row:nth-child(2){
+ flex-direction: column;
+}
+
+.order-row:nth-child(2) .order-col{
+margin-bottom: 30px;
+}
+
+.order-row.attributes{
+  display: flex;
+  flex-direction: unset;
+}
+}
+
+/* Extra large devices (Laptop and Desktops)  */
+@media only screen and (min-width: 1201px) and (max-width: 1600px){
+
+}
+
+/* Super large devices (Widescreen Devices)  */
+@media only screen and (min-width: 1601px){
+
+.admin-title{
+font-size: 25px;
+}
+
+.admin-cards{
+  gap: 30px;
+}
+
+.admin-card{
+  width: 300px;
+  min-height: 200px;
+  padding: 10px;
+  box-shadow: 0 0 10px var(--silver-shadow-color);
+  border-radius: 10px;
+}
+
+.admin-header{
+  margin-bottom: 20px;
+}
+
+.admin-subtitle{
+  font-size: 18px;
+}
+
+.admin-badge{
+  width: 50px;
+  height: 50px;
+  font-size: 18px;
+}
+
+.admin-price,
+.admin-content a {
+font-size: 18px;
+}
+
+.admin-pagination ul li a {
+  padding: 6px 15px;
+  font-size: 18px;
+}
+
+.admin-add-col form .admin-group input {
+  font-size: 18px;
+  width: 300px;
+}
+
+.admin-add-col form .admin-group textarea {
+  width: 300px;
+  font-size: 18px;
+}
+
+.admin-group select {
+font-size: 18px;
+}
+
+
+.admin-group-btn button {
+ font-size: 18px;
+}
+
+
+.admin-group .ui-dropdown {
+  width: 300px;
+  font-size: 18px;
+}
+
+.update form .admin-group input {
+  font-size: 18px;
+  width: 300px;
+}
+
+.update form .admin-group textarea {
+  width: 300px;
+  font-size: 18px;
+}
+
+.form-container {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.form-row {
+  width: 600px;
+  height: auto;
+  border-radius: 8px;
+}
+
+.form-header {
+  border-radius: 8px;
+}
+
+.form-title {
+  font-size: 30px;}
+
+.form-controls {
+  margin-bottom: 30px;
+}
+
+.form-controls label {
+font-size: 18px;
+margin-bottom: 8px;
+}
+
+.form-controls input {
+  padding: 15px;
+  font-size: 18px;
+}
+
+.form-form button {
+  padding: 14px 18px;
+  font-size: 18px;
+}
+
+.admin-logout{
+  font-size: 20px;
+}
+
+.order-row.attributes h2{
+  font-size: 25px;
+}
+
+.order-row.attributes .attributes-col form{
+  width: 350px;
+}
+
+.order-row.attributes .attributes-col form input{
+  padding: 0px 20px;
+  font-size: 18px;
+}
+
+.order-row.attributes .attributes-col form button{
+  font-size: 18px;
+  padding: 0 20px;
+}
+
+.order-row.attributes .attributes-col p{
+  font-size: 20px;
+}
+
+.order-row.attributes .attributes-col .attributes-group span{
+  font-size: 20px;
+}
+
+.order-row.attributes .attributes-col .attribute-group a{
+  font-size: 20px;
+}
+
+}
