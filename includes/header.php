@@ -1,16 +1,6 @@
 <?php
-
-session_start();
-
-
-// Includes DB File
-include 'includes/db.php';
-
-
-// Include Functions File
-include "includes/functions/functions.php";
-
-
+// Session, database dan fungsi (aman dipanggil berkali-kali)
+require_once __DIR__ . '/init.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -24,7 +14,7 @@ include "includes/functions/functions.php";
     <meta name="author" content="Muhammad Wildan Habibie">
 
     <!-- Link Start -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.3.2/jquery.rateyo.min.css">
+    <link rel="stylesheet" href="assets/js/rateyo/jquery.rateyo.min.css">
     <link rel="stylesheet" href="assets/fonts/font_awesome/css/all.css">
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/responsive.css">
@@ -44,33 +34,24 @@ include "includes/functions/functions.php";
                     <div class="top-row">
                         <div class="top-col">
                             <?php
-                            if(isset($_SESSION['customerName'])){
-                                $currentUser = $_SESSION['customerName'];
-                            }
-                            
-                            // mengecek jika user eksis
-                            if(!isset($currentUser)){
+                            // mengecek jika user sudah login
+                            if(empty($currentUser)){
                                 echo "<span class='user'><i class='fa fa-user'></i><a>Guest</a></span>";
-                            }
-                            //if exist user
-                            else{
-                                echo"<span class='user'><i class='fa fa-user'></i><a href='account.php'>$currentUser</a><span>";
+                            } else {
+                                echo "<span class='user'><i class='fa fa-user'></i><a href='account.php'>" . e($currentUser) . "</a></span>";
                             }
                             ?>
                         </div>
                         <div class="top-col">
                             <?php
-                             if(isset($_SESSION['customerName'])){
-                                $currentUser = $_SESSION['customerName'];
-                            }
                             // mengecek ada tidaknya user
-                            if(!isset($currentUser)){
+                            if(empty($currentUser)){
                                 echo "<a href='login.php'>Login <i class='fa-solid fa-arrow-right-to-bracket'></i></a>";
                             }
                             //jika user ada
                             else{
                                 echo"
-                                 <form method='post'>
+                                 <form method='post' action='index.php'>
                                     <button name='logout'>Keluar<i
                                     class='fa-solid fa-arrow-right-to-bracket'></i></button>
                             </form>";

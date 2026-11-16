@@ -21,8 +21,8 @@ if (burgerMenu && navbarMenu && bgOverlay) {
 
 document.querySelectorAll('.menu-link').forEach(function (link) {
   link.addEventListener('click', function () {
-    navbarMenu.classList.remove('is-active');
-    bgOverlay.classList.remove('is-active');
+    if (navbarMenu) navbarMenu.classList.remove('is-active');
+    if (bgOverlay) bgOverlay.classList.remove('is-active');
   });
 });
 
@@ -179,6 +179,7 @@ $('.drop-down .options ul li a').click(function () {
   var text = $(this).html();
   $('.drop-down .selected a span').html(text);
   $('.drop-down .options ul').hide();
+  // link berisi ?sort=... sehingga browser akan memuat ulang halaman
 });
 
 // menutup dropdown ketika saya menekan dimanapun di halaman
@@ -188,14 +189,17 @@ $(document).bind('click', function (e) {
     $('.drop-down .options ul').hide();
 });
 
-// fungsi untuk custom dropdown filter page toko start
-$(function (){
-  $(".rateyo").rateYo().on("rateyo.change",function(e, data){
-
-    var rating = data.rating;
-    $(this).parent().find('.score').text('score :' + $(this).attr('data-rateyo-score'));
-    $(this).parent().find('input[name-rating]').val(rating);
-
+// RateYo untuk memberi rating produk start
+$(function () {
+  if (!$.fn.rateYo) return; // library rateYo belum termuat
+  $('.rateyo').each(function () {
+    var $el = $(this);
+    var $input = $el.parent().find('input[name=rating]');
+    $el.rateYo({ halfStar: true }).on('rateyo.change', function (e, data) {
+      $input.val(data.rating);
+    });
+    // nilai awal supaya form tetap terisi walau bintang tidak diubah
+    $input.val($el.rateYo('rating'));
   });
 });
 // RateYo for Rate End

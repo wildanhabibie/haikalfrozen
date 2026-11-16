@@ -1,18 +1,13 @@
 <?php
+// Tambah Kategori
+if (isset($_POST['add'])) {
+    $category_name = db_esc($_POST['name']);
 
-    //Tambah Kategori
-    if(isset($_POST['add'])){
-        $category_name = $_POST['name'];
-        
-        $query = "INSERT INTO category (category_name, date) VALUES ('$category_name', NOW())";
-        $result = mysqli_query($conn, $query);
-        if($result){
-            $message_success = "Kategori baru sudah ditambahkan!";
-            echo"<script>document.location='index.php?category';</script>";
-        } else {
-            $message_error = "Tidak ada kategori yang ditambahkan!";
-        }
+    if ($category_name !== '' && q("INSERT INTO category (category_name, date) VALUES ('$category_name', NOW())")) {
+        redirect('index.php?category');
     }
+    $message_error = "Tidak ada kategori yang ditambahkan!";
+}
 ?>
 <div class="admin">
     <div class="admin-row">
@@ -22,12 +17,11 @@
         <!-- Menambahkan Kategori Start -->
         <h4 class="admin-add">Tambahkan Kategori</h4>
         <div class="admin-add-col">
-            <form action="" method="post">
+            <form action="index.php?category" method="post">
                 <div class="admin-group">
                     <label for="name">Nama Kategori</label>
-                    <input type="text" name="name" id="name" require>
-                    <span class="text-success"><?php if (isset($message_success)) echo $message_success; ?></span>
-                    <span class="text-danger"><?php if (isset($message_error)) echo $message_error; ?>
+                    <input type="text" name="name" id="name" required>
+                                        <span class="text-danger"><?php if (isset($message_error)) echo $message_error; ?></span>
                 </div>
                 <div class="admin-group-btn">
                     <button name="add">Tambahkan Kategori</button>
@@ -42,13 +36,11 @@
             <?php 
             
                 //fetch semua kategori
-                $query = "SELECT * FROM category ORDER BY 1 DESC";
-                $result = mysqli_query($conn, $query);
+                $result = q("SELECT * FROM category ORDER BY id DESC");
 
-                while ($row = mysqli_fetch_array($result)) {
-                    
-                    $id = $row['id'];
-                    $name = $row['category_name'];
+                while ($result && $row = mysqli_fetch_assoc($result)) {
+                    $id = (int) $row['id'];
+                    $name = e($row['category_name']);
 
             ?>
 
@@ -58,7 +50,7 @@
                 </div>
                 <div class="admin-footer">
                     <div class="admin-content">
-                        <a href="includes/delete_category.php?delete_cat=<?php echo $id; ?>"><i
+                        <a href="includes/delete_category.php?delete_cat=<?php echo $id; ?>" onclick="return confirm('Hapus kategori ini?')"><i
                                 class="fa fa-trash-alt"></i></a>
                         <a href="includes/update_category.php?update_cat=<?php echo $id; ?>"><i
                                 class="fa fa-pencil"></i></a>
@@ -73,5 +65,4 @@
         </div>
     </div>
     <!-- Show All Kategori Start -->
-</div>
 </div>

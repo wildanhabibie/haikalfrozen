@@ -1,56 +1,38 @@
-        <?php
-            // menambahkan Header
-            include 'includes/header.php';
+<?php
+require_once 'includes/init.php';
 
-            // pendaftaran User
-            if(isset($_POST['register'])){
+// pendaftaran User
+if (isset($_POST['register'])) {
+    $userip = db_esc(getUserIP());
+    $username = db_esc($_POST['username']);
+    $email = db_esc($_POST['email']);
+    $password = $_POST['password'];
+    $c_password = $_POST['c_password'];
 
-            $userip = getUserIP();
-            $username = $_POST['username'];
-            $email = $_POST['email'];
-            $password = $_POST['password'];
-            $c_password = $_POST['c_password'];
+    if ($username === '' || !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+        $email_error = "Username dan email harus diisi dengan benar!";
+    } elseif (q_count(q("SELECT id FROM users WHERE email = '$email'")) > 0) {
+        $email_error = "Email Sudah Ada, Coba Lagi!";
+    } elseif (q_count(q("SELECT id FROM users WHERE username = '$username'")) > 0) {
+        $email_error = "Username Sudah Dipakai, Coba Lagi!";
+    } elseif (strlen($password) < 5) {
+        $pass_error = "Password minimal harus 5 karakter";
+    } elseif ($password !== $c_password) {
+        $c_pass_error = "Password Tidak Sama, Coba Lagi!";
+    } else {
+        $hashed_pass = md5($password);
+        $ok = q("INSERT INTO users (user_ip, username, email, password, user_image, user_block, date)
+                 VALUES ('$userip', '$username', '$email', '$hashed_pass', '', 0, NOW())");
+        if ($ok) {
+            redirect('login.php', 'Pendaftaran berhasil, silakan login.');
+        }
+        $email_error = "Pendaftaran gagal, coba lagi!";
+    }
+}
 
-            // hashed password
-            $hashed_pass = md5($password);
-            $hashed_c_pass = md5($c_password);
-
-            // Cek Email
-            if ($email){
-                $query = "SELECT * FROM users WHERE email = '$email' ";
-                $result = mysqli_query($conn, $query);
-                $count = mysqli_num_rows($result);
-
-                if($count > 0){
-                    $email_error = "Email Sudah Ada, Coba Lagi!";
-                // echo "<script>alert('Email Sudah Ada, Coba Lagi!');</script>";
-                // echo "<script>document.location='register.php';</script>";
-                } else {
-                    if(strlen($password )< 5){
-                        $pass_error = "Password minimal harus 5 karakter";
-                    } else {
-                        // mengecek password == confirm_password
-            if($hashed_pass == $hashed_c_pass){
-                // masukkan ke dalam tabel users
-                $query = "INSERT INTO users(user_ip, username, email, password, date) VALUES('$userip', '$username','$email','$hashed_pass', now())";
-                $result = mysqli_query($conn, $query);
-
-                if($result){
-                // echo "<script>alert('Pendaftaran User Berhasil!');</script>";
-                echo "<script>document.location='login.php';</script>";
-                }
-            
-            }   else {
-                $c_pass_error = "Password Tidak Sama, Coba Lagi!";
-                // echo "<script>alert('Password Tidak Sama, Coba Lagi!');</script>";
-                // echo "<script>document.location='register.php';</script>";
-            }
-                    }
-                }
-              }
-
-            }
-        ?>
+// menambahkan Header
+include 'includes/header.php';
+?>
 
         <!-- Main Start -->
         <main id="main">
@@ -60,18 +42,18 @@
                     <div class="form-header">
                         <h2 class="form-title">Buat Akun</h2>
                     </div>
-                    <form class="form-form" action="" method="post">
+                    <form class="form-form" action="register.php" method="post">
                         <div class="form-controls">
                             <label for="username">
                                 Username
                             </label>
-                            <input type="text" name="username" id="username" required>
+                            <input type="text" name="username" id="username" value="<?php echo isset($_POST['username']) ? e($_POST['username']) : '' ?>" required>
                         </div>
                         <div class="form-controls">
                             <label for="email">
                                 E-mail
                             </label>
-                            <input type="email" name="email" id="email" required>
+                            <input type="email" name="email" id="email" value="<?php echo isset($_POST['email']) ? e($_POST['email']) : '' ?>" required>
                         </div>
                         <span class="text-danger"><?php if (isset($email_error)) echo $email_error;?></span>
                         <div class="form-controls">
@@ -100,27 +82,11 @@
                 </div>
             </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             <!-- Login ENd -->
         </main>
         <!-- Main End -->
 
 
         <?php
-            // menambahkan Footer
-            include 'includes/footer.php';
-        ?>
+// menambahkan Footer
+include 'includes/footer.php';

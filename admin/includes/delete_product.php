@@ -1,28 +1,28 @@
 <?php
+require_once __DIR__ . '/init.php';
+require_admin('../login.php');
 
-    include "db.php";
+// Hapus produk beserta gambar, jenis, ukuran dan isi keranjang/wish terkait
+if (isset($_GET['pro_id'])) {
+    $product_id = (int) $_GET['pro_id'];
 
-    //Delete Kategori
-    if(isset($_GET['pro_id'])){
-        $product_id = $_GET['pro_id'];
+    $result = q("SELECT * FROM products WHERE id = '$product_id'");
+    $row = $result ? mysqli_fetch_assoc($result) : null;
 
-        //  untuk menghapus gambar
-        $select_img = "SELECT * FROM products WHERE id = '$product_id'";
-        $result_img = mysqli_query($conn, $select_img);
-        $row = mysqli_fetch_array($result_img);
-
-        // hapus gambar
-        unlink("../assets/images/products/".$row['product_image']);
-        unlink("../assets/images/products/".$row['product_image1']);
-        unlink("../assets/images/products/".$row['product_image2']);
-        unlink("../assets/images/products/".$row['product_image3']);
-
-         $delete_product = "DELETE FROM products WHERE id='$product_id'";
-        $result_delete = mysqli_query($conn, $delete_product);
-
-        if($result_delete){
-            echo "<script>alert('Produk Dihapus!')</script>";
-            echo "<script>window.open('../index.php?products', '_self')</script>";
+    if ($row) {
+        foreach (['product_image', 'product_image1', 'product_image2', 'product_image3'] as $column) {
+            $file = PRODUCT_IMG_DIR . basename($row[$column]);
+            if ($row[$column] !== '' && is_file($file)) {
+                @unlink($file);
+            }
+        }
+        q("DELETE FROM jenis WHERE product_id = '$product_id'");
+        q("DELETE FROM sizes WHERE product_id = '$product_id'");
+        q("DELETE FROM cart WHERE product_id = '$product_id'");
+        q("DELETE FROM wish WHERE product_id = '$product_id'");
+        if (q("DELETE FROM products WHERE id = '$product_id'")) {
+            redirect('../index.php?products', 'Produk Dihapus!');
         }
     }
-?>
+}
+redirect('../index.php?products');

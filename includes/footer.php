@@ -1,4 +1,4 @@
-        <!-- Footer {sticky} Start -->
+<!-- Footer {sticky} Start -->
         <footer id="footer">
             <section class="horizontal-footer-section" id="footer-top-section">
                 <div id="footer-logo">
@@ -7,11 +7,10 @@
                 <div id="footer-top-menu-container" role="menubar">
                     <ul id="footer-top-menu" role="menu">
                         <?php
-                            $query = "SELECT * FROM category";
-                            $result = mysqli_query($conn, $query);
-                            while($row = mysqli_fetch_array($result)){
-                                $category_id = $row['id'];
-                                $category_name = $row['category_name'];
+                            $footer_cat = q("SELECT * FROM category");
+                            while($footer_cat && $row = mysqli_fetch_array($footer_cat)){
+                                $category_id = (int) $row['id'];
+                                $category_name = e($row['category_name']);
                         
                         ?>
                         <li class="footer-top-menu-item" role="menuitem">
@@ -122,18 +121,10 @@
         <!-- Scripts Start -->
         <script src="assets/js/jquery/jquery.min.js"></script>
         <script src="assets/fonts/font_awesome/js/all.js"></script>
+        <script src="assets/js/rateyo/jquery.rateyo.min.js"></script>
         <script src="assets/js/main.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.3.2/jquery.rateyo.min.js"></script>
         <!-- Scripts End -->
 
-        <?php
-
-        // Keluar{
-        if(isset($_POST['logout'])){
-            session_destroy();
-            echo"<script>document.location='index.php';</script>";
-        }
-        ?>
 
 
         </body>

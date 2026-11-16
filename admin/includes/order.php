@@ -1,37 +1,22 @@
 <?php
+require_once __DIR__ . '/init.php';
+require_admin('../login.php');
 
- include "db.php";
-if (!isset($_GET['order_no'])) {
-    echo "<script>window.open('../index.php', '_self');</script>";
-    }else if(isset($_GET['order_no'])){
-        // jika tidak ada order akan diarahkan ke homepage
-        $check_id = $_GET['order_no'];
-        $check_order = "SELECT * FROM orders WHERE invoice_no = '$check_id'";
-        $query_order = mysqli_query($conn, $check_order);
-        $count = mysqli_num_rows($query_order);
-        if($count == 0){
-            echo"<script>window.open('../index.php','_self');</script>";
-        }
-    }
-    
-    // mendapatkan semua dari orders
-    if(isset($_GET['order_no'])){
+$order_id = isset($_GET['order_no']) ? db_esc($_GET['order_no']) : '';
+$result = q("SELECT * FROM orders WHERE invoice_no = '$order_id' ORDER BY id");
+if ($order_id === '' || q_count($result) == 0) {
+    redirect('../index.php?orders');
+}
 
-        $order_id = $_GET['order_no'];
-
-        $query = "SELECT * FROM orders WHERE invoice_no = '$order_id'";
-        $result = mysqli_query($conn, $query);
-        $row = mysqli_fetch_array($result);
-
-        $user_name = $row['user_name'];
-        $user_email = $row['user_email'];
-        $user_phone = $row['user_phone'];
-        $user_address = $row['user_address'];
-
-    }
-
+$items = [];
+while ($row = mysqli_fetch_assoc($result)) {
+    $items[] = $row;
+}
+$user_name = $items[0]['user_name'];
+$user_email = $items[0]['user_email'];
+$user_phone = $items[0]['user_phone'];
+$user_address = $items[0]['user_address'];
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -54,103 +39,81 @@ if (!isset($_GET['order_no'])) {
         <div class="order-container">
             <div class="order-row">
                 <a href="../index.php?orders" class="order-back"><i class="fa fa-arrow-left"></i> Kembali</a>
-                <h2 class="order-title">Pesanan dari <php echo $user_name ?></h2>
+                <h2 class="order-title">Pesanan dari <?php echo e($user_name) ?></h2>
             </div>
             <div class="order-row">
                 <div class="order-col">
                     <div class="order-group">
                         <span>Full Name </span>
-                        <h4><?php echo $user_name ?></h4>
+                        <h4><?php echo e($user_name) ?></h4>
                     </div>
                     <div class="order-group">
                         <span>Email </span>
-                        <h4><?php echo $user_email ?></h4>
+                        <h4><?php echo e($user_email) ?></h4>
                     </div>
                     <div class="order-group">
                         <span>Telepon </span>
-                        <h4><php echo $user_phone ?></h4>
+                        <h4><?php echo e($user_phone) ?></h4>
                     </div>
                     <div class="order-group">
                         <span>Alamat </span>
-                        <h4><?php echo $user_address ?></h4>
+                        <h4><?php echo nl2br(e($user_address)) ?></h4>
                     </div>
                 </div>
                 <div class="order-col">
                     <div class="order-group">
                         <span>No Pesanan </span>
-                        <h4><?php echo $order_id ?></h4>
+                        <h4><?php echo e($order_id) ?></h4>
                     </div>
-                    <?php 
-                          // mendapatkan semua dari orders
-                            if(isset($_GET['order_no'])){
-
-                                $order_id = $_GET['order_no'];
-                                $total = 0;
-
-                                $query_all = "SELECT * FROM orders WHERE invoice_no = '$order_id'";
-                                $result_all = mysqli_query($conn, $query_all);
-                                while($row_all = mysqli_fetch_array($result_all)) {
-                                    $product_id = $row['product_id'];
-                                    $product_name = $row['product_name'];
-                                    $product_price = $row['product_price'];
-                                    $product_quantity = $row['product_quantity'];
-                                    $product_size = $row['product_size'];
-                                    $product_jenis = $row['product_jenis'];
-                                    
-                                    $sub_total = $product_price * $product_quantity;
-                                    $total += $sub_total;
-
-                                    ?>
-                                    <div class="orders-group">
-                                    <div class="order-group">
-                                        <span>Nama Produk</span>
-                                        <h4><?php echo $product_name ?></h4>
-                                    </div>
-                                    <div class="order-group">
-                                        <span>Harga Produk</span>
-                                        <h4>Rp.<?php echo number_format((float)$product_price, 3, '.', '') ?></h4>
-                                    </div>
-                                    <div class="order-group">
-                                        <span>Jenis Produk</span>
-                                        <h4><?php echo $product_jenis ?></h4>
-                                    </div>
-                                    <div class="order-group">
-                                        <span>Ukuran Produk</span>
-                                        <h4><?php echo $product_size ?></h4>
-                                    </div>
-                                </div>
-                                    <?php
-                                
-                                }
-                            }
-                          ?>
+                    <?php
+                    $total = 0;
+                    foreach ($items as $item) {
+                        $sub_total = $item['product_price'] * $item['product_quantity'];
+                        $total += $sub_total;
+                        ?>
+                        <div class="orders-group">
+                            <div class="order-group">
+                                <span>Nama Produk</span>
+                                <h4><?php echo e($item['product_name']) ?></h4>
+                            </div>
+                            <div class="order-group">
+                                <span>Harga Produk</span>
+                                <h4><?php echo rupiah($item['product_price']) ?> x <?php echo (int) $item['product_quantity'] ?></h4>
+                            </div>
+                            <div class="order-group">
+                                <span>Jenis Produk</span>
+                                <h4><?php echo e($item['product_jenis']) ?></h4>
+                            </div>
+                            <div class="order-group">
+                                <span>Ukuran Produk</span>
+                                <h4><?php echo e($item['product_size']) ?></h4>
+                            </div>
+                        </div>
+                        <?php
+                    }
+                    // ongkir 20%
+                    $reduced_price = $total * 20 / 100;
+                    $totalPrice = $total + $reduced_price;
+                    ?>
                 </div>
             </div>
             <div class="order-row">
-            <div class="order-group">
-                            <span>Total</span>
-                            <h4>Rp.<?php echo number_format((float)$product_price, 3, '.', '') ?></h4>
-                        </div>
-                        <div class="order-group">
-                        <?php
-                        //Dikurangi 20%
-                        $reduced_price = (($total / 100)* 20);
-                        ?>
-                            <span>20.00%</span>
-                            <h4>Rp.<?php echo number_format((float)$reduced_price, 3, '.', '') ?></h4>
-                        </div>
-                        <div class="order-group">
-                        <?php
-                            //Number format - tiga desimal
-                            $totalPrice= (($total / 100)* 20) + $total;
-                            ?>
-                            <span>total dengan VAT</span>
-                            <h4>Rp.<?php echo number_format((float)$totalPrice, 3, '.', '') ?></h4>
-                        </div>
+                <div class="order-group">
+                    <span>Total</span>
+                    <h4><?php echo rupiah($total) ?></h4>
+                </div>
+                <div class="order-group">
+                    <span>Ongkir 20.00%</span>
+                    <h4><?php echo rupiah($reduced_price) ?></h4>
+                </div>
+                <div class="order-group">
+                    <span>Total dengan Ongkir</span>
+                    <h4><?php echo rupiah($totalPrice) ?></h4>
+                </div>
             </div>
             <div class="order-row">
-                <a href="deleteOrder.php?order_del=<?php echo $order_id ?>">Hapus Pesanan <i class="fa fa-trash-alt"></i></a>
-                <a href="downloadOrder.php?order_no=<?php echo $order_id ?>" target="_blank">Download PDF <i class="fa-solid fa-file-pdf"></i></a>
+                <a href="deleteOrder.php?order_del=<?php echo urlencode($order_id) ?>" onclick="return confirm('Hapus pesanan ini?')">Hapus Pesanan <i class="fa fa-trash-alt"></i></a>
+                <a href="downloadOrder.php?order_no=<?php echo urlencode($order_id) ?>" target="_blank">Download PDF <i class="fa-solid fa-file-pdf"></i></a>
             </div>
         </div>
 
@@ -158,8 +121,7 @@ if (!isset($_GET['order_no'])) {
     </main>
     <!-- Main End -->
     <!-- Scripts Start -->
-    <script src="assets/fonts/font_awesome/js/all.js"></script>
-    <script src="assets/js/main.js"></script>
+    <script src="../assets/fonts/font_awesome/js/all.js"></script>
     <!-- Scripts End -->
 </body>
 

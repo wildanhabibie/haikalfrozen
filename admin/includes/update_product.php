@@ -1,72 +1,53 @@
-<?php 
-// menambahkan file database
+<?php
+require_once __DIR__ . '/init.php';
+require_admin('../login.php');
 
-    include "db.php";
-    
-    session_start();
+// produk yang akan diupdate
+$product_id = isset($_GET['pro_id']) ? (int) $_GET['pro_id'] : 0;
+$result = q("SELECT * FROM products WHERE id = '$product_id'");
+$product = $result ? mysqli_fetch_assoc($result) : null;
+if (!$product) {
+    redirect('../index.php?products', 'Produk tidak ditemukan!');
+}
 
-    // memberi tahu iseet admin
-    if(isset($_SESSION['customerName'])){
-     $currentUser = $_SESSION['customerName'];
-    } else {
-        echo"<script>document.location='../login.php';</script>";
-    }
+if (isset($_POST['update'])) {
+    $pro_name = db_esc($_POST['name']);
+    $category_id = (int) $_POST['category'];
+    $pro_price = (float) str_replace(',', '.', $_POST['price']);
+    $pro_desc = db_esc($_POST['desc']);
 
-    // untuk mengupdate category
-    if(isset($_GET['pro_id'])){
-        $product_id = $_GET['pro_id'];
-        
-        $query = "SELECT * FROM products WHERE id = '$product_id'";
+    $cat = q("SELECT category_name FROM category WHERE id = '$category_id'");
+    $cat_row = $cat ? mysqli_fetch_assoc($cat) : null;
+    $cat_name = db_esc($cat_row ? $cat_row['category_name'] : $product['category_name']);
 
-        $result = mysqli_query($conn, $query);
-        $row = mysqli_fetch_array($result);
-
-         $product_name = $row['product_name'];
-         $category_name = $row['category_name'];
-         $product_price = $row['product_price'];
-         $product_desc = $row['product_desc'];
-         $product_image = $row['product_image'];
-         $product_image1 = $row['product_image1'];
-         $product_image2 = $row['product_image2'];
-         $product_image3 = $row['product_image3'];
-    }
-
-    if(isset($_POST['update'])) {
-
-            $pro_name = $_POST['name'];
-         $cat_name = $_POST['category'];
-         $pro_price = $_POST['price'];
-         $pro_desc = $_POST['desc'];
-         
-         $pro_image = $_FILES['file']['name'];
-         $pro_image1 = $_FILES['file1']['name'];
-         $pro_image2 = $_FILES['file2']['name'];
-         $pro_image3 = $_FILES['file3']['name'];
-
-        $temp_image = $_FILES['file']['tmp_name'];
-        $temp_image1 = $_FILES['file1']['tmp_name'];
-        $temp_image2 = $_FILES['file2']['tmp_name'];
-        $temp_image3 = $_FILES['file3']['tmp_name'];
-
-        move_uploaded_file($temp_image, "../assets/images/products/$product_image");
-        move_uploaded_file($temp_image1, "../assets/images/products/$product_image1");
-        move_uploaded_file($temp_image2, "../assets/images/products/$product_image2");
-        move_uploaded_file($temp_image3, "../assets/images/products/$product_image3");
-
-        $update_query = "UPDATE products SET product_name='$pro_name', category_name = '$cat_name', product_price ='$pro_price',
-        product_desc = '$pro_desc', product_image = '$pro_image', product_image1 = '$pro_image1', product_image2 = '$pro_image2',
-        product_image3 = '$pro_image3', date= NOW() WHERE id = '$product_id'";
-        
-        $run_update = mysqli_query($conn, $update_query);
-
-            if($run_update){
-                $update_mess = "Update Sukses!";
-                echo"<script>document.location='../index.php?products';</script>";
+    // gambar lama tetap dipakai kalau tidak ada gambar baru yang diupload
+    $columns = ['file' => 'product_image', 'file1' => 'product_image1', 'file2' => 'product_image2', 'file3' => 'product_image3'];
+    $images = [];
+    foreach ($columns as $field => $column) {
+        $new = save_uploaded_image($field, PRODUCT_IMG_DIR);
+        if ($new !== null) {
+            if ($product[$column] !== '' && is_file(PRODUCT_IMG_DIR . basename($product[$column]))) {
+                @unlink(PRODUCT_IMG_DIR . basename($product[$column]));
             }
+            $images[$column] = db_esc($new);
+        } else {
+            $images[$column] = db_esc($product[$column]);
         }
+    }
+
+    $ok = q("UPDATE products SET product_name = '$pro_name', category_id = '$category_id', category_name = '$cat_name',
+             product_price = '$pro_price', product_desc = '$pro_desc',
+             product_image = '{$images['product_image']}', product_image1 = '{$images['product_image1']}',
+             product_image2 = '{$images['product_image2']}', product_image3 = '{$images['product_image3']}',
+             date = NOW() WHERE id = '$product_id'");
+    if ($ok) {
+        redirect('../index.php?products', 'Update Sukses!');
+    }
+    $update_mess = "Update gagal!";
+}
+
+$product_name = e($product['product_name']);
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -89,72 +70,57 @@
         <div class="order-container">
             <div class="order-row">
                 <a href="../index.php?products" class="order-back"><i class="fa fa-arrow-left"></i> Kembali</a>
-                <a href="delete_product.php?pro_id=<?php echo $product_id; ?>" class="delete_product">Hapus Produk
+                <a href="delete_product.php?pro_id=<?php echo $product_id; ?>" class="delete_product" onclick="return confirm('Hapus produk ini?')">Hapus Produk
                     <i class="fa fa-trash-alt"></i></a>
                 <h2 class="order-title">Update Produk</h2>
             </div>
             <div class="order-row update">
                 <span class="text-success">
-                    <?php if (isset($update_mess)) echo $update_mess; ?></span>
-                <form method="post" enctype="multipart/form-data">
+                    <?php if (isset($update_mess)) echo e($update_mess); ?></span>
+                <form method="post" action="update_product.php?pro_id=<?php echo $product_id ?>" enctype="multipart/form-data">
                     <div class="admin-group">
                         <label for="name">Nama Produk</label>
-                        <input type="text" name="name" id="name" value="<?php echo $product_name ?>">
+                        <input type="text" name="name" id="name" value="<?php echo $product_name ?>" required>
                     </div>
                     <div class="admin-group">
                         <label for="category">Kategori Produk</label>
                         <div class="ui-dropdown">
                             <select id="category" name="category">
-                                <option value="<?php echo $category_name ?>"><?php echo $category_name ?></option>
                                 <?php
-                                    $query = "SELECT * FROM category";
-                                    $result = mysqli_query($conn, $query);
-                                    while($row = mysqli_fetch_array($result)){
-                                        
-                                        $cat_id = $row['id'];
-                                        $cat_name = $row['category_name'];
-                                        echo "<option value='$cat_id'>$cat_name</option>";
-                                    }
+                                $result = q("SELECT * FROM category ORDER BY category_name");
+                                while ($result && $row = mysqli_fetch_assoc($result)) {
+                                    $cat_id = (int) $row['id'];
+                                    $selected = ($cat_id === (int) $product['category_id']
+                                        || (!$product['category_id'] && $row['category_name'] === $product['category_name'])) ? ' selected' : '';
+                                    echo "<option value='$cat_id'$selected>" . e($row['category_name']) . "</option>";
+                                }
                                 ?>
                             </select>
                         </div>
                     </div>
                     <div class="admin-group">
-                        <label for="price">Harga Produk</label>
-                        <input type="text" name="price" id="price" value="<?php echo $product_price ?>">
+                        <label for="price">Harga Produk (dalam ribuan, contoh: 25 = Rp25.000)</label>
+                        <input type="number" step="0.001" min="0" name="price" id="price" value="<?php echo e((float) $product['product_price']) ?>" required>
                     </div>
                     <div class="admin-group">
                         <label for="desc">Deskripsi Produk</label>
-                        <textarea name="desc" id="desc" cols="30" rows="10"><?php echo $product_desc ?></textarea>
+                        <textarea name="desc" id="desc" cols="30" rows="10"><?php echo e($product['product_desc']) ?></textarea>
                     </div>
+                    <?php
+                    $fields = ['file' => 'product_image', 'file1' => 'product_image1', 'file2' => 'product_image2', 'file3' => 'product_image3'];
+                    $n = 0;
+                    foreach ($fields as $field => $column):
+                        $n++;
+                    ?>
                     <div class="admin-group">
-                        <label for="file">Gambar Produk 1</label>
-                        <input type="file" name="file" id="file" class="file">
-                        <input type="hidden" value="<?php echo $product_image ?>">
-                        <img src="../assets/images/products/<?php echo $product_image ?>" class="img-update"
+                        <label for="<?php echo $field ?>">Gambar Produk <?php echo $n ?></label>
+                        <input type="file" name="<?php echo $field ?>" id="<?php echo $field ?>" class="file" accept="image/*">
+                        <?php if ($product[$column] !== ''): ?>
+                        <img src="../../assets/images/product_images/<?php echo e($product[$column]) ?>" class="img-update"
                             alt="<?php echo $product_name ?>">
+                        <?php endif ?>
                     </div>
-                    <div class="admin-group">
-                        <label for="file">Gambar Produk 2</label>
-                        <input type="file" name="file1" id="file" class="file">
-                        <input type="hidden" value="<?php echo $product_image1 ?>">
-                        <img src="../assets/images/products/<?php echo $product_image1 ?>" class="img-update"
-                            alt="<?php echo $product_name ?>">
-                    </div>
-                    <div class="admin-group">
-                        <label for="file">Gambar Produk 3</label>
-                        <input type="file" name="file2" id="file" class="file">
-                        <input type="hidden" value="<?php echo $product_image2 ?>">
-                        <img src="../assets/images/products/<?php echo $product_image2 ?>" class="img-update"
-                            alt="<?php echo $product_name ?>">
-                    </div>
-                    <div class="admin-group">
-                        <label for="file">Gambar Produk 4</label>
-                        <input type="file" name="file3" id="file" class="file">
-                        <input type="hidden" value="<?php echo $product_image3 ?>">
-                        <img src="../assets/images/products/<?php echo $product_image3 ?>" class="img-update"
-                            alt="<?php echo $product_name ?>">
-                    </div>
+                    <?php endforeach ?>
                     <div class="admin-group-btn custom">
                         <button name="update">Update Produk</button>
                     </div>
@@ -162,8 +128,8 @@
                 <div class="attributes-group">
                     <h3>Tambah Atribut</h3>
                     <div class="attribute">
-                        <a href="add_jenis.php?pro_id=<?php echo $product_id?>">Jenis</a>
-                        <a href="add_size.php?pro_id=<?php echo $product_id?>">Ukuran</a>
+                        <a href="add_jenis.php?pro_id=<?php echo $product_id ?>">Jenis</a>
+                        <a href="add_size.php?pro_id=<?php echo $product_id ?>">Ukuran</a>
                     </div>
                 </div>
             </div>
@@ -175,16 +141,7 @@
     <!-- Scripts Start -->
     <script src="../assets/js/jquery/jquery.min.js"></script>
     <script src="../assets/fonts/font_awesome/js/all.js"></script>
-    <script src="../assets/js/main.js"></script>
     <!-- Scripts End -->
-
-    <?php 
-    
-     
-    
-    ?>
-
-
 </body>
 
 </html>

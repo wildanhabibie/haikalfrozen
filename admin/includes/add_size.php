@@ -1,42 +1,24 @@
-<?php 
-// menambahkan file database
+<?php
+require_once __DIR__ . '/init.php';
+require_admin('../login.php');
 
-    include "db.php";
-    
-    session_start();
+// produk yang diberi atribut
+$pro_id = isset($_GET['pro_id']) ? (int) $_GET['pro_id'] : 0;
+$result = q("SELECT * FROM products WHERE id = '$pro_id'");
+$row = $result ? mysqli_fetch_assoc($result) : null;
+if (!$row) {
+    redirect('../index.php?products', 'Produk tidak ditemukan!');
+}
+$pro_name = e($row['product_name']);
 
-     // mendapatkan ID produk
-    if(isset($_GET['pro_id'])){
-        $pro_id = $_GET['pro_id'];
-
-        $query = "SELECT * FROM products WHERE id = '$pro_id'";
-        $result = mysqli_query($conn, $query);
-        $row = mysqli_fetch_array($result);
-        $pro_name = $row['product_name'];
-
+// tambahkan ukuran
+if (isset($_POST['add'])) {
+    $value = db_esc($_POST['size']);
+    if ($value !== '') {
+        q("INSERT INTO sizes (product_id, size_rand, product_size, date) VALUES ('$pro_id', 0, '$value', NOW())");
     }
-
-    // memberi tahu iseet admin
-    if(isset($_SESSION['customerName'])){
-     $currentUser = $_SESSION['customerName'];
-    } else {
-        echo"<script>document.location='../login.php';</script>";
-    }
-
-      //tambahkan ukuran
-    if(isset($_POST['add'])) {
-        $pro_size = $_POST['size'];
-
-        $size_rand = rand(0, 100);
-
-        $query = "INSERT into sizes (product_id, size_rand, product_size, date) VALUES ('$pro_id', '$size_rand', '$pro_size', NOW())";
-        $result = mysqli_query($conn, $query);
-        if($result){
-            $message = "Ukuran ditambahkan!";
-            echo"<script>document.location='add_size.php?pro_id=$pro_id';</script>";
-        }
-    }
-
+    redirect("add_size.php?pro_id=$pro_id");
+}
 ?>
 
 
@@ -61,13 +43,12 @@
         <!-- Attributes page Start -->
         <div class="order-container">
             <div class="order-row">
-                <a href="../index.php?products" class="order-back"><i class="fa fa-arrow-left"></i> Kembali</a>
+                <a href="update_product.php?pro_id=<?php echo $pro_id ?>" class="order-back"><i class="fa fa-arrow-left"></i> Kembali</a>
             </div>
             <div class="order-row attributes">
                 <div class="attributes-col">
                     <h2>Tambahkan Ukuran</h2>
-                    <span class="text-success attributes"><?php if (isset($message)) echo $message;?></span>
-                    <form method="post">
+                                        <form method="post" action="add_size.php?pro_id=<?php echo $pro_id ?>">
                         <input type="text" name="size" placeholder="Pilih Ukuran Disini" required>
                         <button class="" name="add">Tambah</button>
                     </form>
@@ -76,10 +57,8 @@
                     <h2><?php echo $pro_name ?></h2>
                     <?php 
                     
-                    $query = "SELECT * from sizes where product_id = '$pro_id'";
-                    $result = mysqli_query($conn, $query);
-
-                    $count = mysqli_num_rows($result);
+                    $result = q("SELECT * FROM sizes WHERE product_id = '$pro_id' ORDER BY id");
+                    $count = q_count($result);
                     if($count == 0){
                         echo "
                             <div class='no_found_title'>
@@ -92,10 +71,10 @@
                     <div class="attributes-groups">
                         <?php 
                         
-                        while($row = mysqli_fetch_array($result)){
+                        while($row = mysqli_fetch_assoc($result)){
                             $product_id = $row['product_id'];
-                            $product_size = $row['product_size'];
-                            $size_rand_id = $row['size_rand'];
+                            $product_size = e($row['product_size']);
+                            $size_rand_id = (int) $row['id'];
                         
                         ?>
                         <div class="attribute-group">
@@ -120,7 +99,6 @@
     <!-- Scripts Start -->
     <script src="../assets/js/jquery/jquery.min.js"></script>
     <script src="../assets/fonts/font_awesome/js/all.js"></script>
-    <script src="../assets/js/main.js"></script>
     <!-- Scripts End -->
 
     <?php 

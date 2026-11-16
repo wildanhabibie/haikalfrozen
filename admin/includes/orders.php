@@ -8,17 +8,17 @@
         <div class="admin-add-col">
             <div class="admin-cards">
                 <?php
-                    $query = "SELECT * FROM orders GROUP by invoice_no";
-                    $result = mysqli_query($conn, $query);
-                    $count = mysqli_num_rows($result);
+                    $result = q("SELECT invoice_no, MAX(user_name) AS user_name, MAX(id) AS last_id
+                                 FROM orders GROUP BY invoice_no ORDER BY last_id DESC");
+                    $count = q_count($result);
 
                     if($count == 0){
                         echo "<h4>Tidak ada pesanan sekarang!</h4>";
                     }
 
-                while ($row = mysqli_fetch_array($result)) {
-                    $invoice_no = $row['invoice_no'];
-                    $user_name = $row['user_name'];
+                while ($result && $row = mysqli_fetch_assoc($result)) {
+                    $invoice_no = e($row['invoice_no']);
+                    $user_name = e($row['user_name']);
 
     ?>
                 <div class="admin-card">
