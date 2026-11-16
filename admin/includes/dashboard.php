@@ -12,15 +12,7 @@
                 <div class="admin-body">
                     <div class="admin-content">
                         <i class="fa-solid fa-money-bill"></i>
-                        <?php
-
-                        if(!$sub_total){
-                            echo "<span class='admin-price'>Rp. 0.000</span>";
-                        } else {
-                            echo "<span class='admin-price'>Rp. $sub_total</span>";
-                        }
-                        
-                        ?>
+                        <span class='admin-price'><?php echo rupiah($sub_total) ?></span>
                         
                     </div>
                 </div>

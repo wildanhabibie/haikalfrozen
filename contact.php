@@ -1,49 +1,40 @@
-          <?php
-            // menambahkan Header
-            include 'includes/header.php';
+<?php
+require_once 'includes/init.php';
 
+// kirim pesan
+if (isset($_POST['send'])) {
+    $full_name = trim($_POST['name']);
+    $bot_email = isset($_POST['email']) ? trim($_POST['email']) : '';
+    $s_email = trim($_POST['s_email']);
+    $pesan = trim($_POST['message']);
 
-           // kirim pesan
-            if(isset($_POST['send'])){
+    if ($bot_email !== '') {
+        // kolom tersembunyi terisi -> kemungkinan bot, pesan tidak dikirim
+        $message = "Bot berusaha untuk mengirim email!";
+    } elseif (!filter_var($s_email, FILTER_VALIDATE_EMAIL)) {
+        $message = "Email anda tidak valid!";
+    } else {
+        $to = "lelyyusnita73@gmail.com";
+        $mail_subject = "Pesan dari situs Haikal Frozen Food";
 
-                $full_name = $_POST['name'];
-                $email = $_POST['email'];
-                $s_email = $_POST['s_email'];
-                $message = $_POST['message'];
+        $email_body = "<b>Pesan dari halaman kontak situs</b><br><br>";
+        $email_body .= "<b>Nama:</b> " . e($full_name) . "<br>";
+        $email_body .= "<b>Email:</b> " . e($s_email) . "<br>";
+        $email_body .= "<b>Pesan:</b><br>" . nl2br(e($pesan));
 
-                // kalau email isset dan email tidak kosong, maka pesan tidak terkirim
-                if(isset($email) && trim($email !="") ){
+        $headers = "Reply-To: {$s_email}\r\nContent-Type: text/html; charset=UTF-8";
 
-                    $message = "Bot berusaha untuk mengirim email!";
-                    
-                } else {
+        // mail() hanya berhasil di server yang sudah dikonfigurasi untuk mengirim email
+        if (@mail($to, $mail_subject, $email_body, $headers)) {
+            redirect('contact.php', 'pesan terkirim!');
+        }
+        redirect('contact.php', 'pesan tidak terkirim!');
+    }
+}
 
-                $to = "lelyyusnita73@gmail.com";
-                $mail_subject = "pesan dari situs";
-                
-                $email_body = "Pesan dari halaman kontak situs";
-                $email_body .= "<b>Pesan:</b><br>". nl2br(strip_tags($message));
-                $email_body .= "<br><b></b>{$full_name}<br>";
-
-                $header = "Email: {$s_email}\r\nContent-Type: text/html;";
-                   
-                $send_mail_result = mail($to, $mail_subject, $email_body, $header );
-
-                // hanya berlaku di live server
-                
-                if($send_mail_result) {
-                    echo "<script>alert('pesan terkirim!')</script>";
-                    echo "<script>window.open('contact.php', '_self')</script>";
-                } else {
-                    echo "<script>alert('pesan tidak terkirim!')</script>";
-                    echo "<script>window.open('contact.php', '_self')</script>";
-                }
-
-                }
-
-            }
-
-            ?>
+// menambahkan Header
+include 'includes/header.php';
+?>
 
           <!-- Main Start -->
           <main id="main">
@@ -59,7 +50,7 @@
                       <div class="contact-col">
                           <!-- Form Start -->
 
-                          <form action="" method="post" class="contact-form">
+                          <form action="contact.php" method="post" class="contact-form">
                               <div class="contact-group">
                                   <label for="name">Nama Lengkap</label>
                                   <input name="name" type="text" id="name" required>
@@ -67,17 +58,17 @@
                               <!-- kolom ini hanya untuk bots atau hacker.. jika pesan isset tidak dapat dikirim -->
                               <div class="contact-group hidden">
                                   <label for="email">Email Bots</label>
-                                  <input name="email" type="email" id="email">
+                                  <input name="email" type="email" id="email" tabindex="-1" autocomplete="off">
                               </div>
                               <div class="contact-group">
                                   <label for="s_email">Email Anda</label>
-                                  <input name="s_email" type="s_email" id="email" required>
+                                  <input name="s_email" type="email" id="s_email" required>
                               </div>
                               <div class="contact-group">
-                                  <label for="name">Pesan Anda</label>
-                                  <textarea name="message" id="" cols="30" rows="10" required></textarea>
+                                  <label for="message">Pesan Anda</label>
+                                  <textarea name="message" id="message" cols="30" rows="10" required></textarea>
                               </div>
-                              <span class="text-error"><?php if (isset($message)) echo $message; ?></span>
+                              <span class="text-error"><?php if (isset($message)) echo e($message); ?></span>
                               <button name="send" class="contact-btn">Kirim</button>
                           </form>
                           <!-- Form End -->
@@ -125,8 +116,5 @@
 
 
           <?php
-            // menambahkan Footer
-            include 'includes/footer.php';
-
-            
-        ?>
+// menambahkan Footer
+include 'includes/footer.php';

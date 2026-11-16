@@ -1,7 +1,26 @@
 <?php
-            // menambahkan Header
-            include 'includes/header.php';
-            ?>
+require_once 'includes/init.php';
+
+// hapus item dari keranjang
+if (isset($_GET['delete_item'])) {
+    include 'includes/delete_item.php';
+}
+
+// checkout
+if (isset($_POST['checkout'])) {
+    $ip_address = db_esc(getUserIP());
+    $count_cart = q_count(q("SELECT id FROM cart WHERE ip_add = '$ip_address'"));
+
+    if ($count_cart === 0) {
+        redirect('shop.php', 'Mohon tambahkan produk ke keranjang!');
+    }
+    // langsung menuju halaman checkout
+    redirect('checkout.php');
+}
+
+// menambahkan Header
+include 'includes/header.php';
+?>
 
                     <!-- Main Start -->
                     <main id="main">
@@ -30,37 +49,29 @@
                                         </div>
                                         <div class="cart-div"></div>
                                     </div>
-                                    <?php 
-                                        //mendapatkan semua produk untuk keranjang
-                                        $ip_add = getUserIP();
-                                        $query = "SELECT * FROM cart WHERE ip_add = '$ip_add'";
-                                        $result = mysqli_query($conn, $query);
-                                        $count = mysqli_num_rows($result);
+                                    <?php
+                                        // semua produk di keranjang pengunjung ini
+                                        $ip_add = db_esc(getUserIP());
+                                        $result = q("SELECT c.*, p.product_name, p.product_price, p.product_image
+                                                     FROM cart c JOIN products p ON p.id = c.product_id
+                                                     WHERE c.ip_add = '$ip_add' ORDER BY c.id");
+                                        $count = q_count($result);
 
                                         $total = 0;
 
-                                        while($row = mysqli_fetch_array($result)){
-                                            
-                                            $product_id = $row['product_id'];
-                                            $product_size = $row['product_size'];
-                                            $product_jenis = $row['product_jenis'];
-                                            $product_quantity = $row['product_quantity'];
-
-                                            $query_pro = "SELECT * FROM products WHERE id = '$product_id'";
-                                            $result_pro = mysqli_query($conn, $query_pro);
-
-                                            while($row_pro = mysqli_fetch_array($result_pro)){
-                                                $product_image = $row_pro['product_image'];
-                                                $product_price = $row_pro['product_price'];
-                                                $product_name = $row_pro['product_name'];
-                                                $sub_total = $product_price * $product_quantity;
-                                                $total += $sub_total;
-                                            }
-
+                                        while ($result && $row = mysqli_fetch_assoc($result)) {
+                                            $product_id = (int) $row['product_id'];
+                                            $product_size = e($row['product_size']);
+                                            $product_jenis = e($row['product_jenis']);
+                                            $product_quantity = (int) $row['product_quantity'];
+                                            $product_image = e($row['product_image']);
+                                            $product_name = e($row['product_name']);
+                                            $sub_total = $row['product_price'] * $product_quantity;
+                                            $total += $sub_total;
                                             ?>
                                             <div class="cart-body">
                                         <div class="cart-div">
-                                            <a href="product.php">
+                                            <a href="product.php?pro_id=<?php echo $product_id ?>">
                                                 <img src="assets/images/product_images/<?php echo $product_image ?>" alt="<?php echo $product_name ?>">
                                                 <span><?php echo $product_name ?></span>
                                             </a>
@@ -68,7 +79,7 @@
                                         <div class="cart-div"><span class="quantity"><?php echo $product_quantity ?></span></div>
                                         <div class="cart-div"><span class="quantity"><?php echo $product_jenis ?></span></div>
                                         <div class="cart-div"><span class="quantity"><?php echo $product_size ?></span></div>
-                                        <div class="cart-div"><span class="price-product">Rp.<?php echo number_format((float)$sub_total, 3, '.', '') ?></span></div>
+                                        <div class="cart-div"><span class="price-product"><?php echo rupiah($sub_total) ?></span></div>
                                         <div class="cart-div">
                                             <a href="cart.php?delete_item=<?php echo $product_id ?>">
                                                 <i class="fas fa-trash-alt"></i>
@@ -87,28 +98,28 @@
                                         <div class="cart-footer-div">
                                             <div>
                                                 <h3 class="total-text">Harga Total :</h3>
-                                                <h3 class="total-text">Rp.<?php echo number_format((float)$total, 3, '.', '') ?></h3>
+                                                <h3 class="total-text"><?php echo rupiah($total) ?></h3>
                                             </div>
                                             <div>
                                                 <?php
-                                                //Dikurangi 20%
+                                                // ongkir 20%
                                                 $reduced_price = (($total / 100)* 20);
                                                 ?>
                                                 <h3 class="total-text">Ditambah Pajak Ongkir 20.00%</h3>
-                                                <h3 class="total-text">Rp.<?php echo number_format((float)$reduced_price, 3, '.', ''); ?></h3>
+                                                <h3 class="total-text"><?php echo rupiah($reduced_price) ?></h3>
                                             </div>
                                         </div>
                                         <div class="cart-footer-div">
                                             <div>
                                                 <?php
-                                                //Number format - tiga desimal
+                                                // total + ongkir
                                                 $totalPrice= (($total / 100)* 20) + $total;
                                                 ?>
                                             <h3 class="total-text">Total dengan Ongkir :</h3>
-                                            <h3 class="total-text">Rp.<?php echo number_format((float)$totalPrice, 3, '.', ''); ?></h3>
+                                            <h3 class="total-text"><?php echo rupiah($totalPrice) ?></h3>
                                             </div>
                                             <div>
-                                                <form action="" method="post">
+                                                <form action="cart.php" method="post">
                                                 <button name="checkout" class="cart-checkout">Beli</button>
                                                 </form>
                                             </div>
@@ -118,41 +129,9 @@
                             </div>
                         </div>
                         <!-- Cart End -->
-                        <?php
-                        
-                        //delete item
-                        if(isset($_GET['delete_item'])){
-                            include("includes/delete_item.php");
-                        }
-
-                        ?>
                     </main>
                     <!-- Main End -->
                     <?php
                     
             // menambahkan Footer
             include 'includes/footer.php';
-
-            // checkout
-            if(isset($_POST['checkout'])){
-
-                $ip_address = getUserIP();
-
-                $get_cart = "SELECT * FROM cart WHERE ip_add = '$ip_address'";
-                $result_cart = mysqli_query($conn, $get_cart);
-                $count_cart = mysqli_num_rows($result_cart);
-
-                if($count_cart === 0) {
-
-                    echo "<script>alert('Mohon tambahkan produk ke keranjang!');</script>";
-                    echo "<script>window.open('shop.php','_self');</script>";
-
-                } else {
-
-                    // langsung menuju halaman checkout
-                    echo "<script>window.open('checkout.php','_self');</script>";
-
-                }
-
-            }
-        ?>

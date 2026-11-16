@@ -1,36 +1,23 @@
 <?php
+require_once __DIR__ . '/init.php';
+require_admin('../login.php');
 
-    include "db.php";
+// Hapus User
+if (isset($_GET['user_id'])) {
+    $user_id = (int) $_GET['user_id'];
 
-    //Delete User
-    if(isset($_GET['user_id'])){
-        $user_id = $_GET['user_id'];
+    $result = q("SELECT * FROM users WHERE id = '$user_id'");
+    $row = $result ? mysqli_fetch_assoc($result) : null;
 
-    // untuk menghapus gambar profile
-    $query = "SELECT * FROM users WHERE id = '$user_id'";
-    $result = mysqli_query($conn,$query);
-    $row = mysqli_fetch_array($result);
-    
-    $user_image = $row['user_image'];
-
-    if(!empty($user_image)){
-        unlink('../../assets/images/customers/'.$user_image);
-
-        $delete_user = "DELETE FROM users WHERE id='$user_id'";
-        $result_delete = mysqli_query($conn, $delete_user);
-
-        if($result_delete){
-            echo "<script>alert('User Dihapus!')</script>";
-            echo "<script>window.open('../index.php?users', '_self')</script>";
+    if ($row) {
+        // hapus foto profil
+        $file = CUSTOMER_IMG_DIR . basename($row['user_image']);
+        if ($row['user_image'] !== '' && $row['user_image'] !== 'user.png' && is_file($file)) {
+            @unlink($file);
         }
-    } else {
-        $delete_user = "DELETE FROM users WHERE id='$user_id'";
-        $result_delete = mysqli_query($conn, $delete_user);
-
-        if($result_delete){
-            echo "<script>alert('User Dihapus!')</script>";
-            echo "<script>window.open('../index.php?users', '_self')</script>";
+        if (q("DELETE FROM users WHERE id = '$user_id'")) {
+            redirect('../index.php?users', 'User Dihapus!');
         }
     }
-    }
-?>
+}
+redirect('../index.php?users');

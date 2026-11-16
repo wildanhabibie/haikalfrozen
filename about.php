@@ -1,7 +1,7 @@
-          <?php
-            // menambahkan Header
-            include 'includes/header.php'
-            ?>
+<?php
+// menambahkan Header
+include 'includes/header.php';
+?>
 
           <!-- Main Start -->
           <main id="main">
@@ -36,6 +36,5 @@
 
 
           <?php
-            // menambahkan Footer
-            include 'includes/footer.php'
-        ?>
+// menambahkan Footer
+include 'includes/footer.php';

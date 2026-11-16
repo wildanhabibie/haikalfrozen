@@ -1,30 +1,29 @@
 <?php
-            session_start();
-            // Includes DB File
-            include 'includes/db.php';
-            
-            if(isset($_POST['login'])) {
-                $username = $_POST['username'];
-                $password = $_POST['password'];
+require_once __DIR__ . '/includes/init.php';
 
-                $hash_password = md5($password);
+// sudah login? langsung ke dashboard
+if (!empty($_SESSION['adminName'])) {
+    redirect('index.php?dashboard');
+}
 
-                // Query
-                $query = "SELECT * FROM admin_account WHERE admin_name = '$username' AND admin_password = '$hash_password'";
-                $result = mysqli_query($conn, $query);
-                // if
-                if(mysqli_num_rows($result) == 1) {
-                    $_SESSION['customerName'] = $_POST['username'];
-                    $success = "Login Berhasil!";
-                    echo"<script>document.location='index.php?dashboard';</script>";
-                }
-                // else
-                else{
-                    $error = "Nama dan Password Salah";
-                }
-            }
-            
-        ?>
+if (isset($_POST['login'])) {
+    $username = db_esc($_POST['username']);
+    $result = q("SELECT * FROM admin_account WHERE admin_name = '$username'");
+    $row = $result ? mysqli_fetch_assoc($result) : null;
+    if ($row && verify_password($_POST['password'], $row['admin_password'])) {
+        // hash md5 lama otomatis diganti dengan password_hash
+        if (password_needs_upgrade($row['admin_password'])) {
+            $new_hash = db_esc(hash_password($_POST['password']));
+            q("UPDATE admin_account SET admin_password = '$new_hash' WHERE id = '" . (int) $row['id'] . "'");
+        }
+        session_regenerate_id(true);
+        // session admin terpisah dari session pelanggan
+        $_SESSION['adminName'] = $_POST['username'];
+        redirect('index.php?dashboard');
+    }
+    $error = "Nama dan Password Salah";
+}
+?>
 
 
 
@@ -35,7 +34,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Admin Login</title>
     <!-- Link Start -->
     <link rel="stylesheet" href="../assets/fonts/font_awesome/css/all.css">
     <link rel="stylesheet" href="../assets/css/main.css">
@@ -50,8 +49,7 @@
             <div class="form-header">
                 <h2 class="form-title">Admin Login</h2>
             </div>
-            <form class="form-form" action="" method="post">
-                <span class="text-danger"><?php if (isset($success)) echo $success; ?></span>
+            <form class="form-form" action="login.php" method="post">
                 <span class="text-danger"><?php if (isset($error)) echo $error; ?></span>
                 <div class="form-controls">
                     <label for="username">Username</label>
@@ -68,7 +66,6 @@
     <!-- Login End -->
     <!-- Scripts Start -->
     <script src="assets/fonts/font_awesome/js/all.js"></script>
-    <script src="assets/js/main.js"></script>
     <!-- Scripts End -->
 </body>
 

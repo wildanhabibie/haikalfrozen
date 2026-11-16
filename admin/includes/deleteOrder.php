@@ -1,17 +1,13 @@
 <?php
+require_once __DIR__ . '/init.php';
+require_admin('../login.php');
 
-    include "db.php";
+// Hapus pesanan
+if (isset($_GET['order_del'])) {
+    $order_id = db_esc($_GET['order_del']);
 
-    //Delete Orders
-    if(isset($_GET['order_del'])){
-        $order_id = $_GET['order_del'];
-
-        $delete_order = "DELETE FROM orders WHERE invoice_no='$order_id'";
-        $result_delete = mysqli_query($conn, $delete_order);
-
-        if($result_delete){
-            echo "<script>alert('Orders Dihapus!')</script>";
-            echo "<script>window.open('../index.php?orders', '_self')</script>";
-        }
+    if (q("DELETE FROM orders WHERE invoice_no = '$order_id'")) {
+        redirect('../index.php?orders', 'Pesanan Dihapus!');
     }
-?>
+}
+redirect('../index.php?orders');

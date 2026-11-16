@@ -1,44 +1,38 @@
 <?php
-//Download Order Page -> jadikan PHP
+// Download pesanan sebagai PDF (pelanggan)
+require_once __DIR__ . '/init.php';
+require_once __DIR__ . '/../assets/fpdf184/fpdf.php';
 
-// includes file
-include "./db.php";
-include "./functions/functions.php";
-include ("../assets/fpdf184/fpdf.php");
+$order_id = isset($_GET['order_no']) ? db_esc($_GET['order_no']) : '';
+$ip_add = db_esc(getUserIP());
+$order_filter = "user_ip = '$ip_add' AND invoice_no = '$order_id'";
+$back_url = '../index.php';
 
-// memeriksa halaman order jika ada,kalau tidak ada maka langsung menuju ke homepage
-if (!isset($_GET['order_no'])) {
-    echo "<script>window.open('./index.php','_self');</script>";
-    } else if(isset($_GET['order_no'])){
-        // jika tidak ada order akan diarahkan ke homepage
-        $check_id = $_GET['order_no'];
-        $ip_add = getUserIP();
-        $check_order = "SELECT * FROM orders WHERE user_ip='$ip_add' AND invoice_no = '$check_id'";
-        $query_order = mysqli_query($conn, $check_order);
-        $count = mysqli_num_rows($query_order);
-        if($count == 0){
-            echo"<script>window.open('./index.php','_self');</script>";
-        }
-    }
+// jika pesanan tidak ada, kembali
+$result = q("SELECT * FROM orders WHERE $order_filter ORDER BY id");
+if ($order_id === '' || q_count($result) == 0) {
+    redirect($back_url);
+}
+$row = mysqli_fetch_assoc($result);
+mysqli_data_seek($result, 0);
 
-// membuat PDF
+$user_name = $row['user_name'];
+$user_email = $row['user_email'];
+$user_phone = $row['user_phone'];
+$user_address = $row['user_address'];
+$date_order = $row['date'];
 
-// mendapatkan order
-if(isset($_GET['order_no'])){
+// FPDF memakai encoding windows-1252
+function pdf_text($text)
+{
+    $converted = @iconv('UTF-8', 'windows-1252//TRANSLIT', (string) $text);
+    return $converted === false ? (string) $text : $converted;
+}
 
-    $order_id = $_GET['order_no'];
-    $ip_add = getUserIP();
-
-    $query = "SELECT * FROM orders WHERE user_ip='$ip_add' AND invoice_no = '$order_id'";
-    $result = mysqli_query($conn, $query);
-    $row = mysqli_fetch_array($result);
-
-    $user_name = $row['user_name'];
-    $user_email = $row['user_email'];
-    $user_phone = $row['user_phone'];
-    $user_address = $row['user_address'];
-    $date_order = $row['date'];
-
+// format angka: 25 -> 25.000 (harga disimpan dalam ribuan)
+function pdf_money($value)
+{
+    return number_format((float) $value * 1000, 0, ',', '.');
 }
 
 $pdf = new FPDF();
@@ -51,7 +45,7 @@ $pdf->Cell(276, 5);
 $pdf->SetFont('Arial', '', 20); //font-size => 20
 
 // untuk logo
-$pdf->Cell(10,30,"",0, 1,$pdf->Image('../assets/images/logo/logo.png',8,10,90,15)); //x->10,y->30, 1-> kolom baru
+$pdf->Cell(10,30,"",0, 1,$pdf->Image(__DIR__ . '/../assets/images/logo/logo.png',8,10,90,15)); //x->10,y->30, 1-> kolom baru
 
 // Mensetting Font
 $pdf->SetFont('Arial','',10);
@@ -65,7 +59,7 @@ $pdf->Cell(34 ,5, $date ,0,1);//akhir dari Line
 $pdf->Cell(130 ,5,'Muhammad Wildan Habibie',0,0);
 
 $pdf->Cell(25 ,5,'Order Date:',0,0);
-$pdf->Cell(20 ,5,$date_order,0,1);
+$pdf->Cell(20 ,5,pdf_text($date_order),0,1);
 
 $pdf->Cell(130 ,5,'Phone : +081236007473', 0, 0);
 
@@ -89,25 +83,25 @@ $pdf->Cell(189 ,10,'',0,1);
 
 //Alamat Billing
 
-$order_for = iconv('UTF-8', 'windows-1252', 'Pesanan untuk:');
+$order_for = pdf_text('Pesanan untuk:');
 $pdf->Cell(100 ,5,$order_for,0,1);
 
 
 $pdf->SetFont('Arial', 'B', 10);
 //menambah sel dummy di awal line untuk setiap indentation
 $pdf->Cell(25, 5, '', 0,0);
-$name=iconv('UTF-8', 'windows-1252', $user_name);
+$name=pdf_text($user_name);
 $pdf->Cell(90 ,5,$name,0,1);
 
-$pdf->cell(25, 5, '', 0,0);
-$address=iconv('UTF-8', 'windows-1252', $user_address);
+$pdf->Cell(25, 5, '', 0,0);
+$address=pdf_text($user_address);
 $pdf->Cell(90 ,5,$address,0,1);
 
 $pdf->Cell(25, 5, '', 0,0);
-$pdf->Cell(90 ,5,$user_phone,0,1);
+$pdf->Cell(90 ,5,pdf_text($user_phone),0,1);
 
 $pdf->Cell(25, 5, '', 0,0);
-$email=iconv('UTF-8', 'windows-1252', $user_email);
+$email=pdf_text($user_email);
 $pdf->Cell(90 ,5,$email,0,1);
 
 // Set Font
@@ -124,34 +118,25 @@ $pdf->Cell(25 ,7,'Quantity','TB',0);//->top bottom
 $pdf->Cell(41 ,7,'Total','TB',0);
 $pdf->Cell(41 ,7,'Product','TB',0);
 $pdf->Cell(41 ,7,'Jenis','TB',0);
-$pdf->Cell(41 ,7,'Size','TB',0);
+$pdf->Cell(41 ,7,'Size','TB',1);
 
 // mendapatkan produk order
-if(isset($_GET['order_no'])){
-    $order_id = $_GET['order_no'];
-    
-    $get_order = "SELECT * FROM orders WHERE user_ip = '$ip_add' AND invoice_no='$order_id'";
-    $query = mysqli_query($conn, $get_order);
-    $total = 0;
-    while($invoice=mysqli_fetch_array($query)){
-        $pro_name = $invoice['product_name'];
-        $pro_price = $invoice['product_price'];
-        $pro_qty = $invoice['product_quantity'];
-        $pro_jenis = $invoice['product_jenis'];
-        $pro_size = $invoice['product_size'];
-        $sub_total = $pro_price * $pro_qty;
-        $total += $sub_total;
-
+$total = 0;
+while ($invoice = mysqli_fetch_assoc($result)) {
+    $pro_name = $invoice['product_name'];
+    $pro_price = $invoice['product_price'];
+    $pro_qty = $invoice['product_quantity'];
+    $sub_total = $pro_price * $pro_qty;
+    $total += $sub_total;
 
     //item produk
-    $pdf->Cell(25 ,7,$pro_qty, 0, 0);
-    $pdf->Cell(41 ,7,number_format((float)$pro_price, 3, '.', ''), 0, 0);
-    $product_title = iconv('UTF-8', 'windows-1252', substr($pro_name, 0, 28));
-    $pdf->Cell(41 ,7,$product_title,0,0);
-    $pdf->Cell(41 ,7,$pro_jenis,0,0);
-    $pdf->Cell(41 ,7,$pro_size,0,1);
-    $pdf->Cell(189 ,7,"",'B',1);
-    }
+    $pdf->Cell(25, 7, $pro_qty, 0, 0);
+    $pdf->Cell(41, 7, pdf_money($sub_total), 0, 0);
+    $pdf->Cell(41, 7, pdf_text(substr($pro_name, 0, 28)), 0, 0);
+    $pdf->Cell(41, 7, pdf_text($invoice['product_jenis']), 0, 0);
+    $pdf->Cell(41, 7, pdf_text($invoice['product_size']), 0, 1);
+    $pdf->Cell(189, 7, "", 'B', 1);
+}
 
     $pdf->SetFont('Arial','',10);
 
@@ -159,14 +144,14 @@ if(isset($_GET['order_no'])){
     $pdf->Cell(120 ,7,'',0,0);
     $pdf->Cell(35 ,7,'Total',0,0);
     $pdf->Cell(9 ,7,'Rp',1,0);
-    $pdf->Cell(26 ,7,number_format((float)$total, 3, '.', ''),1,1,'R'); //r->kanan
+    $pdf->Cell(26 ,7,pdf_money($total),1,1,'R'); //r->kanan
 
     $pdf->Cell(120 ,7,'',0,0);
     $pdf->Cell(35 ,7,'ongkir 20%',0,0);
     $pdf->Cell(9 ,7,'Rp',1,0);
     //ongkir 20%
     $reduced_price = (($total / 100)*20);
-    $pdf->Cell(26 ,7,number_format((float)$reduced_price, 3, '.', ''),1,1,'R'); //r->kanan
+    $pdf->Cell(26 ,7,pdf_money($reduced_price),1,1,'R'); //r->kanan
 
     $pdf->SetFont('Arial','B',8);
 
@@ -174,11 +159,11 @@ if(isset($_GET['order_no'])){
     $pdf->Cell(35 ,7,'Total dengan Ongkir',0,0);
     $pdf->Cell(9 ,7,'Rp',1,0);
     $totalPrice = (($total / 100)*20) + $total;
-    $pdf->Cell(26 ,7,number_format((float)$totalPrice, 3, '.', ''),1,1,'R'); //r->kanan
+    $pdf->Cell(26 ,7,pdf_money($totalPrice),1,1,'R'); //r->kanan
 
     
     
-    }
+    
 
     $pdf->Output();
     ?>

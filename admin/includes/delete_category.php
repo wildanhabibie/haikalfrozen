@@ -1,17 +1,13 @@
 <?php
+require_once __DIR__ . '/init.php';
+require_admin('../login.php');
 
-    include "db.php";
+// Hapus Kategori
+if (isset($_GET['delete_cat'])) {
+    $category_id = (int) $_GET['delete_cat'];
 
-    //Delete Kategori
-    if(isset($_GET['delete_cat'])){
-        $category_id = $_GET['delete_cat'];
-
-        $delete_category = "DELETE FROM category WHERE id='$category_id'";
-        $result_delete = mysqli_query($conn, $delete_category);
-
-        if($result_delete){
-            echo "<script>alert('Kategori Dihapus!')</script>";
-            echo "<script>window.open('../index.php?category', '_self')</script>";
-        }
+    if (q("DELETE FROM category WHERE id = '$category_id'")) {
+        redirect('../index.php?category', 'Kategori Dihapus!');
     }
-?>
+}
+redirect('../index.php?category');

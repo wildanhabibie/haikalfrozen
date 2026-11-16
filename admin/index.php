@@ -1,12 +1,18 @@
 <?php
-// session_start();
-            // Includes DB File
-            include 'includes/db.php';
+require_once __DIR__ . '/includes/init.php';
 
-            // menambahkan Header
-            include 'includes/header.php';
-            
-        ?>
+// Keluar
+if (isset($_POST['logout'])) {
+    unset($_SESSION['adminName']);
+    redirect('login.php');
+}
+
+// hanya admin yang boleh masuk
+require_admin('login.php');
+
+// menambahkan Header
+include 'includes/header.php';
+?>
 
 <!-- Admin Panel Start -->
 <div class="wrapper hover_collapse">
@@ -14,7 +20,7 @@
     <div class="top-navbar">
         <!-- Logo Start -->
         <div class="logo">
-            <h2>Muhammad Wildan Habibie</h2>
+            <h2>Haikal Frozen Food</h2>
         </div>
         <!-- Logo End -->
         <!-- Menu Start -->
@@ -85,12 +91,15 @@
         <!-- Main Part Start -->
         <div class="main-part">
             <?php
-                // Insert Dashboard
-                if(isset($_GET['dashboard'])){
+                // Halaman yang dipilih dari menu (default: dashboard)
+                $admin_pages = ['dashboard', 'products', 'category', 'settings', 'users', 'orders'];
+                $selected = array_values(array_intersect($admin_pages, array_keys($_GET)));
+
+                if(empty($selected) || isset($_GET['dashboard'])){
                     include("includes/dashboard.php");
                 }
 
-                 if(isset($_GET['products'])){
+                if(isset($_GET['products'])){
                     include("includes/products.php");
                 }
 
@@ -122,6 +131,5 @@
 </div>
 <!-- Admin Panel End -->
 <?php
-    // menambah Footer
-    include "includes/footer.php";
-?>
+// menambah Footer
+include 'includes/footer.php';

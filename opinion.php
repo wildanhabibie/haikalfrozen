@@ -1,34 +1,35 @@
-          <?php
-            // menambahkan Header
-            include 'includes/header.php';
+<?php
+require_once 'includes/init.php';
 
-            if(isset($_SESSION['customerName'])){
-                $currentUser = $_SESSION['customerName'];
-                
-                $query = "SELECT * FROM users WHERE username = '$currentUser'";
-                $result = mysqli_query($conn, $query);
-                
-                $row = mysqli_fetch_array($result);
-                $user_image = $row['user_image'];
-            }
+$user_image = '';
+if (!empty($currentUser)) {
+    $safe_user = db_esc($currentUser);
+    $result = q("SELECT * FROM users WHERE username = '$safe_user'");
+    if ($result && $row = mysqli_fetch_assoc($result)) {
+        $user_image = $row['user_image'];
+    }
+}
 
-            
-            //Add Opinion
-            if(isset($_POST['add'])){
-                $userip = getUserIP();
-                $message = $_POST['message'];
+// Tambah testimoni (hanya untuk user yang login)
+if (isset($_POST['add']) && !empty($currentUser)) {
+    $userip = db_esc(getUserIP());
+    $message = db_esc($_POST['message']);
+    $safe_user = db_esc($currentUser);
+    $safe_image = db_esc($user_image);
 
-                $query = "INSERT INTO opinion (user_ip, user_name, user_image, user_message, date) VALUES('$userip', '$currentUser','$user_image','$message', now())";
-                $result = mysqli_query($conn, $query);
+    if ($message === '') {
+        $form_message = "Opini tidak boleh kosong!";
+    } elseif (q("INSERT INTO opinion (user_ip, user_name, user_image, user_message, date)
+                 VALUES ('$userip', '$safe_user', '$safe_image', '$message', NOW())")) {
+        redirect('opinion.php', 'Komentar sudah ditambahkan!');
+    } else {
+        $form_message = "Komentar gagal ditambahkan!";
+    }
+}
 
-                if($result){
-                    $message = "Komentar sudah ditambahkan!";
-                    echo"<script>document.location='opinion.php';</script>";
-                }
-            }
-
-
-            ?>
+// menambahkan Header
+include 'includes/header.php';
+?>
 
           <!-- Main Start -->
           <main id="main">
@@ -38,302 +39,76 @@
                   <h2 class="opinion-title">
                       bagi kami anda adalah raja!
                   </h2>
-                  <?php
-                  if(isset($_SESSION['customerName'])){
-                    ?>
+                  <?php if (!empty($currentUser)): ?>
                   <div class="opinion-row">
-                      <form action="" method="post">
+                      <form action="opinion.php" method="post">
                           <div class="form-opinion">
                               <label for="opinion">Opini Anda</label>
                               <textarea name="message" id="opinion" cols="30" rows="10" required></textarea>
                           </div>
-                          <span class="text-success"><?php if(isset($message)) echo $message;?></span>
+                          <span class="text-success"><?php if (isset($form_message)) echo e($form_message); ?></span>
                           <button name="add" class="btn-opinion">Tambahkan</button>
                       </form>
                   </div>
+                  <?php else: ?>
                   <div class="opinion-row">
-                      <div class="opinion-col">
-                          <?php
-                        
-                            $per_page = 12; //setiap page ada 12 komentar
-                          if(isset($_GET['page'])){
-                          $page = $_GET['page'];
-                          } else {
-                          $page = 1;
-                          }
-
-                          $start_from = ($page - 1) * $per_page;
-                          $query = "SELECT * FROM opinion ORDER BY 1 DESC LIMIT $start_from, $per_page";
-                          $result = mysqli_query($conn, $query);
-
-                          $count = mysqli_num_rows($result);
-                          if($count == 0){
-                          echo"
-                          <div class='no_found'>
-                              <h4 class='no_found_title'>Saat ini tidak ada Testimonial!</h4>
-                          </div>
-                          ";
-                          } else {
-
-                          ?>
-                          <div class="opinion-cards">
-                              <?php
-
-                            while($row = mysqli_fetch_array($result)){
-                                $username = $row['user_name'];
-                                $user_image = $row['user_image'];
-                                $user_message = $row['user_message'];
-                                $date = $row['date'];
-                            ?>
-                              <div class="opinion-card">
-                                  <div class="opinion-card-header">
-                                      <p class="opinion-date"><?php echo $date;?></p>
-                                  </div>
-                                  <div class="opinion-card-body">
-                                      <p class="opinion-desc"><?php echo $user_message;?></p>
-                                  </div>
-                                  <div class="opinion-card-footer">
-                                      <?php 
-                                    if(!empty($user_image)){
-                                        echo "<img src='assets/images/customers/$user_image' alt='$username' class='opinion-img'>";
-                                    
-                                    } else {
-                                        echo "<img src='assets/images/customers/user.png' alt='$username' class='opinion-img'>";
-                                    }
-                                    ?>
-                                      <span class="opinion-name"><?php echo $username;?></span>
-                                  </div>
-                              </div>
-                              <?php 
-                                }
-                              ?>
-                          </div>
-                      </div>
+                      <p><a href="login.php">Login</a> untuk menulis testimoni anda.</p>
                   </div>
-                  <!-- Show All Users Start End -->
-                  <!-- pagination start -->
-                  <div class="admin-pagination">
-                      <ul>
-                          <?php
-                                $query = "SELECT * FROM opinion";
-                                $result = mysqli_query($conn, $query);
-                                $total_record = mysqli_num_rows($result);
-                                 $total_page = ceil($total_record / $per_page);
-                            ?>
-                          <?php if($page == 1): ?>
-                          <?php else: ?>
-                          <li class='pagination-menu-item'>
-                              <a href='opinion.php?page=<?php echo ($page - 1) ?>' class='pagination-menu-link'>Prev</a>
-                          </li>
-
-                          <?php if($page > 2): ?>
-                          <li class='pagination-menu-item'>
-                              <a href='opinion.php?page=1'
-                                  class='pagination-menu-link <?php echo $_GET['page'] == "$page  > 2" ? "active" : ""; ?>'>1</a>
-                          </li>
-                          <?php endif ?>
-
-                          <?php if($page > 3): ?>
-                          <li class='pagination-menu-item'>
-                              <a
-                                  class='pagination-menu-link <?php echo $_GET['page'] == "$page  > 3" ? "active" : ""; ?>'>...</a>
-                          </li>
-                          <?php endif ?>
-
-                          <?php endif ?>
-                          <?php if($page - 1 > 0): ?>
-                          <li class='pagination-menu-item'>
-                              <a href='opinion.php?page=<?php echo $page - 1 ?>'
-                                  class='pagination-menu-link <?php echo $_GET['page'] == "$page  - 1 > 0" ? "active" : ""; ?>'><?php echo $page - 1 ?></a>
-                          </li>
-                          <?php endif ?>
-                          <li class='pagination-menu-item'>
-                              <a
-                                  class='pagination-menu-link <?php echo $_GET['page'] == "$page" ? "active" : ""; ?>'><?php echo $page?></a>
-                          </li>
-
-                          <?php if ($page + 1 < $total_page): ?>
-                          <li class='pagination-menu-item'>
-                              <a href='opinion.php?page=<?php echo $page + 1 ?>'
-                                  class='pagination-menu-link <?php echo $_GET['page'] == "$page + 1 < $total_page" ? "active" : ""; ?>'>
-                                  <?php echo $page + 1 ?></a>
-                          </li>
-                          <?php endif ?>
-
-                          <?php if ($page < $total_page): ?>
-                          <?php if($page < $total_page - 2): ?>
-                          <li class='pagination-menu-item
-                            <?php echo $_GET['page'] == "$page < $total_page - 2" ? "active" : ""; ?>'>
-                              <a class='pagination-menu-link'>...</a>
-                          </li>
-                          <?php endif ?>
-                          <li class='pagination-menu-item'>
-                              <a href='opinion.php?page=<?php echo $total_page ?>'
-                                  class='pagination-menu-link <?php echo $_GET['page'] == "$total_page" ? "active" : ""; ?>'><?php echo $total_page ?></a>
-                          </li>
-                          <li class='pagination-menu-item'>
-                              <a href='opinion.php?page=<?php echo ($page + 1) ?>'
-                                  class='pagination-menu-link '>Next</a>
-                          </li>
-                          <?php endif ?>
-                      </ul>
-                  </div>
-                  <!-- pagination end -->
-                  <?php 
-                    }
-                    ?>
-
-
-                  <?php
-                    } else {
-                     
-                   ?>
+                  <?php endif ?>
 
                   <div class="opinion-row">
                       <div class="opinion-col">
                           <?php
-                        
-                            $per_page = 12; //setiap page ada 12 komentar
-                          if(isset($_GET['page'])){
-                          $page = $_GET['page'];
-                          } else {
-                          $page = 1;
-                          }
-
+                          $per_page = 12; // setiap page ada 12 komentar
+                          $page = current_page();
                           $start_from = ($page - 1) * $per_page;
-                          $query = "SELECT * FROM opinion ORDER BY 1 DESC LIMIT $start_from, $per_page";
-                          $result = mysqli_query($conn, $query);
 
-                          $count = mysqli_num_rows($result);
-                          if($count == 0){
-                          echo"
-                          <div class='no_found'>
-                              <h4 class='no_found_title'>Saat ini tidak ada Testimonial!</h4>
-                          </div>
-                          ";
+                          $result = q("SELECT * FROM opinion ORDER BY id DESC LIMIT $start_from, $per_page");
+                          if (q_count($result) == 0) {
+                              echo "
+                              <div class='no_found'>
+                                  <h4 class='no_found_title'>Saat ini tidak ada Testimonial!</h4>
+                              </div>
+                              ";
                           } else {
-
                           ?>
                           <div class="opinion-cards">
                               <?php
-
-                            while($row = mysqli_fetch_array($result)){
-                                $username = $row['user_name'];
-                                $user_image = $row['user_image'];
-                                $user_message = $row['user_message'];
-                                $date = $row['date'];
-                            ?>
+                              while ($row = mysqli_fetch_assoc($result)) {
+                                  $username = e($row['user_name']);
+                                  $avatar = !empty($row['user_image']) ? e($row['user_image']) : 'user.png';
+                              ?>
                               <div class="opinion-card">
                                   <div class="opinion-card-header">
-                                      <p class="opinion-date"><?php echo $date;?></p>
+                                      <p class="opinion-date"><?php echo e($row['date']) ?></p>
                                   </div>
                                   <div class="opinion-card-body">
-                                      <p class="opinion-desc"><?php echo $user_message;?></p>
+                                      <p class="opinion-desc"><?php echo nl2br(e($row['user_message'])) ?></p>
                                   </div>
                                   <div class="opinion-card-footer">
-                                      <?php 
-                                    if(!empty($user_image)){
-                                        echo "<img src='assets/images/customers/$user_image' alt='$username' class='opinion-img'>";
-                                    
-                                    } else {
-                                        echo "<img src='assets/images/customers/user.png' alt='$username' class='opinion-img'>";
-                                    }
-                                    ?>
-                                      <span class="opinion-name"><?php echo $username;?></span>
+                                      <img src="assets/images/customers/<?php echo $avatar ?>" alt="<?php echo $username ?>" class="opinion-img">
+                                      <span class="opinion-name"><?php echo $username ?></span>
                                   </div>
                               </div>
-                              <?php 
-                                }
+                              <?php
+                              }
                               ?>
                           </div>
+                          <?php
+                          }
+                          ?>
                       </div>
                   </div>
-                  <!-- Show All Users Start End -->
-                  <!-- pagination start -->
-                  <div class="admin-pagination">
-                      <ul>
-                          <?php
-                                $query = "SELECT * FROM opinion";
-                                $result = mysqli_query($conn, $query);
-                                $total_record = mysqli_num_rows($result);
-                                 $total_page = ceil($total_record / $per_page);
-                            ?>
-                          <?php if($page == 1): ?>
-                          <?php else: ?>
-                          <li class='pagination-menu-item'>
-                              <a href='opinion.php?page=<?php echo ($page - 1) ?>' class='pagination-menu-link'>Prev</a>
-                          </li>
-
-                          <?php if($page > 2): ?>
-                          <li class='pagination-menu-item'>
-                              <a href='opinion.php?page=1'
-                                  class='pagination-menu-link <?php echo $_GET['page'] == "$page  > 2" ? "active" : ""; ?>'>1</a>
-                          </li>
-                          <?php endif ?>
-
-                          <?php if($page > 3): ?>
-                          <li class='pagination-menu-item'>
-                              <a
-                                  class='pagination-menu-link <?php echo $_GET['page'] == "$page  > 3" ? "active" : ""; ?>'>...</a>
-                          </li>
-                          <?php endif ?>
-
-                          <?php endif ?>
-                          <?php if($page - 1 > 0): ?>
-                          <li class='pagination-menu-item'>
-                              <a href='opinion.php?page=<?php echo $page - 1 ?>'
-                                  class='pagination-menu-link <?php echo $_GET['page'] == "$page  - 1 > 0" ? "active" : ""; ?>'><?php echo $page - 1 ?></a>
-                          </li>
-                          <?php endif ?>
-                          <li class='pagination-menu-item'>
-                              <a
-                                  class='pagination-menu-link <?php echo $_GET['page'] == "$page" ? "active" : ""; ?>'><?php echo $page?></a>
-                          </li>
-
-                          <?php if ($page + 1 < $total_page): ?>
-                          <li class='pagination-menu-item'>
-                              <a href='opinion.php?page=<?php echo $page + 1 ?>'
-                                  class='pagination-menu-link <?php echo $_GET['page'] == "$page + 1 < $total_page" ? "active" : ""; ?>'>
-                                  <?php echo $page + 1 ?></a>
-                          </li>
-                          <?php endif ?>
-
-                          <?php if ($page < $total_page): ?>
-                          <?php if($page < $total_page - 2): ?>
-                          <li class='pagination-menu-item
-                            <?php echo $_GET['page'] == "$page < $total_page - 2" ? "active" : ""; ?>'>
-                              <a class='pagination-menu-link'>...</a>
-                          </li>
-                          <?php endif ?>
-                          <li class='pagination-menu-item'>
-                              <a href='opinion.php?page=<?php echo $total_page ?>'
-                                  class='pagination-menu-link <?php echo $_GET['page'] == "$total_page" ? "active" : ""; ?>'><?php echo $total_page ?></a>
-                          </li>
-                          <li class='pagination-menu-item'>
-                              <a href='opinion.php?page=<?php echo ($page + 1) ?>'
-                                  class='pagination-menu-link '>Next</a>
-                          </li>
-                          <?php endif ?>
-                      </ul>
-                  </div>
-                  <!-- pagination end -->
-                  <?php 
-                    }
-                    ?>
-
-
+                  <!-- pagination -->
                   <?php
-                    }
-                    ?>
-
+                  $total_record = q_count(q("SELECT id FROM opinion"));
+                  render_pagination('opinion.php?', $page, (int) ceil($total_record / $per_page));
+                  ?>
               </div>
               <!-- Opinion End -->
           </main>
           <!-- Main End -->
 
-
-          <?php
-            // menambahkan Footer
-            include 'includes/footer.php';
-
-        ?>
+<?php
+// menambahkan Footer
+include 'includes/footer.php';

@@ -12,17 +12,11 @@
             // fetch semua kustomer dari DB
 
             $per_page = 12; //setiap page ada 12 user
-            if(isset($_GET['page'])){
-                $page = $_GET['page'];
-            } else {
-                $page = 1;
-            }
-
+            $page = current_page();
             $start_from = ($page - 1) * $per_page;
-            $query = "SELECT * FROM users ORDER BY 1 DESC LIMIT $start_from, $per_page";
-            $result = mysqli_query($conn, $query);
+            $result = q("SELECT * FROM users ORDER BY id DESC LIMIT $start_from, $per_page");
 
-            $count = mysqli_num_rows($result);
+            $count = q_count($result);
             if($count == 0){
                 echo"
                 <div class='no_found'>
@@ -33,10 +27,10 @@
         <div class="admin-cards">
             <?php
 
-            while($row = mysqli_fetch_array($result)){
-                $user_id = $row['id'];
-                $username = $row['username'];
-                $user_image = $row['user_image'];
+            while($row = mysqli_fetch_assoc($result)){
+                $user_id = (int) $row['id'];
+                $username = e($row['username']);
+                $user_image = e($row['user_image']);
             ?>
             <div class="admin-card">
                 <div class="admin-body">
@@ -55,7 +49,7 @@
                 </div>
                 <div class="admin-footer users">
                     <div class="admin-content">
-                        <a href="includes/delete_user.php?user_id=<?php echo $user_id; ?>"><i
+                        <a href="includes/delete_user.php?user_id=<?php echo $user_id; ?>" onclick="return confirm('Hapus user ini?')"><i
                                 class="fa fa-trash-alt"></i></a>
                         <a href="includes/update_user.php?user_id=<?php echo $user_id; ?>"><i
                                 class="fa fa-pencil"></i></a>
@@ -67,73 +61,10 @@
             ?>
         </div>
         <!-- Show All Users Start End -->
-        <div class="admin-pagination">
-            <ul>
-                <?php
-                    $query = "SELECT * FROM users";
-                    $result = mysqli_query($conn, $query);
-                    $total_record = mysqli_num_rows($result);
-                    $total_page = ceil($total_record / $per_page);
-                ?>
-
-
-                <?php if($page == 1): ?>
-                <?php else: ?>
-                <li class='pagination-menu-item'>
-                    <a href='index.php?users&page=<?php echo ($page - 1) ?>' class='pagination-menu-link'>Prev</a>
-                </li>
-
-                <?php if($page > 2): ?>
-                <li class='pagination-menu-item '>
-                    <a href='index.php?users&page=1'
-                        class='pagination-menu-link <?php echo $_GET['page'] == "$page  > 2" ? "active" : ""; ?>'>1</a>
-                </li>
-                <?php endif ?>
-
-                <?php if($page > 3): ?>
-                <li class='pagination-menu-item '>
-                    <a class='pagination-menu-link <?php echo $_GET['page'] == "$page  > 3" ? "active" : ""; ?>'>...</a>
-                </li>
-                <?php endif ?>
-
-                <?php endif ?>
-                <?php if($page - 1 > 0): ?>
-                <li class='pagination-menu-item'>
-                    <a href='index.php?users&page=<?php echo $page - 1 ?>'
-                        class='pagination-menu-link <?php echo $_GET['page'] == "$page  - 1 > 0" ? "active" : ""; ?>'><?php echo $page - 1 ?></a>
-                </li>
-                <?php endif ?>
-                <li class='pagination-menu-item'>
-                    <a
-                        class='pagination-menu-link <?php echo $_GET['page'] == "$page" ? "active" : ""; ?>'><?php echo $page?></a>
-                </li>
-
-                <?php if ($page + 1 < $total_page): ?>
-                <li class='pagination-menu-item'>
-                    <a href='index.php?user&page=<?php echo $page + 1 ?>'
-                        class='pagination-menu-link <?php echo $_GET['page'] == "$page + 1 < $total_page" ? "active" : ""; ?>'>
-                        <?php echo $page + 1 ?></a>
-                </li>
-                <?php endif ?>
-
-                <?php if ($page < $total_page): ?>
-                <?php if($page < $total_page - 2): ?>
-                <li class='pagination-menu-item'>
-                    <a
-                        class='pagination-menu-link <?php echo $_GET['page'] == "$page < $total_page - 2" ? "active" : ""; ?>'>...</a>
-                </li>
-                <?php endif ?>
-                <li class='pagination-menu-item '>
-                    <a href='index.php?users&page=<?php echo $total_page ?>'
-                        class='pagination-menu-link <?php echo $_GET['page'] == "$total_page" ? "active" : ""; ?>'><?php echo $total_page ?></a>
-                </li>
-                <li class='pagination-menu-item'>
-                    <a href='index.php?users&page=<?php echo ($page + 1) ?>' class='pagination-menu-link'>Next</a>
-                </li>
-                <?php endif ?>
-            </ul>
-        </div>
-        <!-- pagination end -->
+        <?php
+            $total_record = q_count(q("SELECT id FROM users"));
+            render_pagination('index.php?users&', $page, (int) ceil($total_record / $per_page));
+        ?>
         <?php 
             }
         ?>
