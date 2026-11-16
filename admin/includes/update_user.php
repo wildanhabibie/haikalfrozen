@@ -22,7 +22,7 @@ if (isset($_POST['update'])) {
     $password = $_POST['password'];
 
     // password hanya diganti kalau diisi
-    $hash_pass = $password !== '' ? md5($password) : $customer_pass;
+    $hash_pass = db_esc($password !== '' ? hash_password($password) : $customer_pass);
 
     // foto baru (opsional)
     $new_image = save_uploaded_image('image', CUSTOMER_IMG_DIR);

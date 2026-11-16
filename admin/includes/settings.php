@@ -2,7 +2,8 @@
 // Update Password admin
 if (isset($_POST['update'])) {
     $admin_name = db_esc($_SESSION['adminName']);
-    $hash_old_pass = md5($_POST['ol_pass']);
+    $res_admin = q("SELECT admin_password FROM admin_account WHERE admin_name = '$admin_name'");
+    $admin_row = $res_admin ? mysqli_fetch_assoc($res_admin) : null;
     $new_password = $_POST['pass'];
     $r_password = $_POST['r_pass'];
 
@@ -10,10 +11,10 @@ if (isset($_POST['update'])) {
         $r_pass_err = "Password baru dan konfirmasi password tidak cocok!";
     } elseif (strlen($new_password) < 5) {
         $r_pass_err = "Password baru minimal 5 karakter!";
-    } elseif (q_count(q("SELECT id FROM admin_account WHERE admin_name = '$admin_name' AND admin_password = '$hash_old_pass'")) == 0) {
+    } elseif (!$admin_row || !verify_password($_POST['ol_pass'], $admin_row['admin_password'])) {
         $pass_err = "Password lama tidak cocok!";
     } else {
-        $hash_new_pass = md5($new_password);
+        $hash_new_pass = db_esc(hash_password($new_password));
         q("UPDATE admin_account SET admin_password = '$hash_new_pass' WHERE admin_name = '$admin_name'");
         unset($_SESSION['adminName']);
         redirect('login.php', 'Update Password Berhasil! Silakan login kembali.');

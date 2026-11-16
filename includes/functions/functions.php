@@ -97,9 +97,45 @@ function ensure_schema()
         q("ALTER TABLE products ADD COLUMN category_id INT NOT NULL DEFAULT 0 AFTER id");
         q("UPDATE products p JOIN category c ON c.category_name = p.category_name SET p.category_id = c.id");
     }
+    // hash password_hash() panjangnya 60+ karakter; kolom lama mungkin VARCHAR(32)
+    foreach (['users' => 'password', 'admin_account' => 'admin_password'] as $table => $column) {
+        $info = q("SHOW COLUMNS FROM $table LIKE '$column'");
+        $row = $info ? mysqli_fetch_assoc($info) : null;
+        if ($row && preg_match('/char\((\d+)\)/i', $row['Type'], $m) && (int) $m[1] < 255) {
+            q("ALTER TABLE $table MODIFY $column VARCHAR(255) NOT NULL");
+        }
+    }
     if ($col) {
         $_SESSION['schema_checked'] = true;
     }
+}
+
+/* ==========================================================================
+ * Password
+ * ======================================================================== */
+
+// Hash password baru (bcrypt via password_hash)
+function hash_password($plain)
+{
+    return password_hash((string) $plain, PASSWORD_DEFAULT);
+}
+
+// Cek password; masih menerima hash md5 lama dari database sebelumnya
+function verify_password($plain, $stored)
+{
+    $stored = (string) $stored;
+    if (password_get_info($stored)['algo']) {
+        return password_verify((string) $plain, $stored);
+    }
+    return preg_match('/^[a-f0-9]{32}$/i', $stored) === 1
+        && hash_equals(strtolower($stored), md5((string) $plain));
+}
+
+// true kalau hash masih md5 / perlu diperbarui ke algoritma terbaru
+function password_needs_upgrade($stored)
+{
+    $stored = (string) $stored;
+    return !password_get_info($stored)['algo'] || password_needs_rehash($stored, PASSWORD_DEFAULT);
 }
 
 /* ==========================================================================

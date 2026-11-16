@@ -8,10 +8,14 @@ if (!empty($_SESSION['adminName'])) {
 
 if (isset($_POST['login'])) {
     $username = db_esc($_POST['username']);
-    $hash_password = md5($_POST['password']);
-
-    $result = q("SELECT * FROM admin_account WHERE admin_name = '$username' AND admin_password = '$hash_password'");
-    if (q_count($result) == 1) {
+    $result = q("SELECT * FROM admin_account WHERE admin_name = '$username'");
+    $row = $result ? mysqli_fetch_assoc($result) : null;
+    if ($row && verify_password($_POST['password'], $row['admin_password'])) {
+        // hash md5 lama otomatis diganti dengan password_hash
+        if (password_needs_upgrade($row['admin_password'])) {
+            $new_hash = db_esc(hash_password($_POST['password']));
+            q("UPDATE admin_account SET admin_password = '$new_hash' WHERE id = '" . (int) $row['id'] . "'");
+        }
         session_regenerate_id(true);
         // session admin terpisah dari session pelanggan
         $_SESSION['adminName'] = $_POST['username'];

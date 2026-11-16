@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS opinion (
 
 -- Data awal -----------------------------------------------------------------
 INSERT INTO admin_account (admin_name, admin_password)
-SELECT 'admin', MD5('admin123') FROM DUAL
+SELECT 'admin', '$2y$10$iitQ6Lyc20yPueU034ZuVufiiMnkyZj3mq/Jk9J6gJH5UQKzJ66sS' FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM admin_account);
 
 INSERT INTO category (category_name, date)

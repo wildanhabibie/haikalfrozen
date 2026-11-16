@@ -17,5 +17,7 @@ Catatan:
 - Harga produk disimpan dalam **ribuan rupiah** (isi `25` untuk Rp25.000).
 - Database lama tetap bisa dipakai: kolom `products.category_id` yang dibutuhkan
   filter kategori ditambahkan otomatis saat situs pertama kali dibuka.
+- Password disimpan dengan `password_hash()`. Akun lama yang masih memakai md5
+  tetap bisa login dan hash-nya otomatis diperbarui saat login berikutnya.
 - Pengiriman email di halaman Kontak hanya berfungsi di server yang sudah
   dikonfigurasi untuk `mail()`.

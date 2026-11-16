@@ -40,7 +40,7 @@ if (isset($_POST['update'])) {
         $r_pass_err = "Username sudah dipakai orang lain!";
     } else {
         $userIP = db_esc(getUserIP());
-        $hash_pass = md5($password);
+        $hash_pass = db_esc(hash_password($password));
 
         // foto profil baru (opsional)
         $new_image = save_uploaded_image('image', __DIR__ . '/assets/images/customers/');

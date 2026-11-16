@@ -9,16 +9,19 @@ if (!empty($currentUser)) {
 // login
 if (isset($_POST['login'])) {
     $username = db_esc($_POST['username']);
-    $hash_password = md5($_POST['password']);
-
-    $result = q("SELECT * FROM users WHERE username = '$username' AND password = '$hash_password'");
+    $result = q("SELECT * FROM users WHERE username = '$username'");
     $row = $result ? mysqli_fetch_assoc($result) : null;
 
-    if (!$row) {
+    if (!$row || !verify_password($_POST['password'], $row['password'])) {
         $error = "Username dan Password Salah!";
     } elseif ((int) $row['user_block'] === 1) {
         $error = "Akun ini diblokir!";
     } else {
+        // hash md5 lama otomatis diganti dengan password_hash
+        if (password_needs_upgrade($row['password'])) {
+            $new_hash = db_esc(hash_password($_POST['password']));
+            q("UPDATE users SET password = '$new_hash' WHERE id = '" . (int) $row['id'] . "'");
+        }
         session_regenerate_id(true);
         $_SESSION['customerName'] = $row['username'];
         redirect('index.php');

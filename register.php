@@ -20,7 +20,7 @@ if (isset($_POST['register'])) {
     } elseif ($password !== $c_password) {
         $c_pass_error = "Password Tidak Sama, Coba Lagi!";
     } else {
-        $hashed_pass = md5($password);
+        $hashed_pass = db_esc(hash_password($password));
         $ok = q("INSERT INTO users (user_ip, username, email, password, user_image, user_block, date)
                  VALUES ('$userip', '$username', '$email', '$hashed_pass', '', 0, NOW())");
         if ($ok) {
